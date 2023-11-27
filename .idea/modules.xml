@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/../BoostFace_pyqt5/.idea/BoostFace_pyqt5.iml" filepath="$PROJECT_DIR$/../BoostFace_pyqt5/.idea/BoostFace_pyqt5.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/BoostFace_pyqt6.iml" filepath="$PROJECT_DIR$/.idea/BoostFace_pyqt6.iml" />
     </modules>
   </component>
