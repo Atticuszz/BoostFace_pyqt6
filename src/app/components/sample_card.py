@@ -1,11 +1,9 @@
 # coding:utf-8
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QWidget, QFrame, QLabel, QVBoxLayout, QHBoxLayout
-
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout
 from qfluentwidgets import IconWidget, TextWrap, FlowLayout, CardWidget
-from ..common.signal_bus import signalBus
-from ..common.style_sheet import StyleSheet
+
+from src.app.common import signalBus, StyleSheet
 
 
 class SampleCard(CardWidget):
@@ -73,3 +71,15 @@ class SampleCardView(QWidget):
         """ add sample card """
         card = SampleCard(icon, title, content, routeKey, index, self)
         self.flowLayout.addWidget(card)
+
+
+if __name__ == "__main__":
+    # simple card show
+    from PyQt6.QtWidgets import QApplication
+    import sys
+
+    app = QApplication(sys.argv)
+    card = SampleCardView("test")
+    card.addSampleCard("test", "test", "test", "test", 1)
+    card.show()
+    sys.exit(app.exec())

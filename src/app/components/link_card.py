@@ -1,10 +1,10 @@
 # coding:utf-8
 from PyQt6.QtCore import Qt, QUrl
-from PyQt6.QtGui import QPixmap, QDesktopServices
+from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget, QHBoxLayout
-
 from qfluentwidgets import IconWidget, FluentIcon, TextWrap, SingleDirectionScrollArea
-from ..common.style_sheet import StyleSheet
+
+from src.app.common.style_sheet import StyleSheet
 
 
 class LinkCard(QFrame):
@@ -69,3 +69,16 @@ class LinkCardView(SingleDirectionScrollArea):
         """ add link card """
         card = LinkCard(icon, title, content, url, self.view)
         self.hBoxLayout.addWidget(card, 0, Qt.AlignmentFlag.AlignLeft)
+
+
+if __name__ == '__main__':
+    import sys
+    from PyQt6.QtWidgets import QApplication
+
+    app = QApplication(sys.argv)
+    w = LinkCardView()
+    w.addCard(FluentIcon.GITHUB, 'Github', 'test', 'https://github.com')
+    w.addCard(FluentIcon.GITHUB, 'Github', 'test', 'https://github.com')
+    w.addCard(FluentIcon.GITHUB, 'Github', 'test', 'https://github.com')
+    w.show()
+    sys.exit(app.exec())

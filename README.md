@@ -8,7 +8,6 @@
 - the database is based on supabase and milvus in fastapi cloud compute
 
 ## Project Architecture
-
 - layout
     - home
         - total state
