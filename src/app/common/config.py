@@ -5,7 +5,7 @@ from enum import Enum
 from PyQt6.QtCore import QLocale
 from qfluentwidgets import (qconfig, QConfig, ConfigItem, OptionsConfigItem, BoolValidator,
                             OptionsValidator, RangeConfigItem, RangeValidator,
-                            FolderListValidator, Theme, FolderValidator, ConfigSerializer, __version__)
+                            Theme, ConfigSerializer, __version__)
 
 
 class Language(Enum):
@@ -33,12 +33,14 @@ def isWin11():
 
 class Config(QConfig):
     """ Config of application """
+    # camera
 
-    # folders
-    musicFolders = ConfigItem(
-        "Folders", "LocalMusic", [], FolderListValidator())
-    downloadFolder = ConfigItem(
-        "Folders", "Download", "app/download", FolderValidator())
+    cameraFps = OptionsConfigItem(
+        "Camera", "Fps", 30, OptionsValidator([10, 15, 20, 25, 30, "default"]), restart=True)
+    cameraDevice = OptionsConfigItem(
+        "Camera", "Device", 0, OptionsValidator([0, 1, "default"]), restart=True)
+    cameraResolution = OptionsConfigItem(
+        "Camera", "Resolution", (1920, 1080), OptionsValidator([(1920, 1080), (1280, 720), "default"]), restart=True)
 
     # main window
     micaEnabled = ConfigItem("MainWindow", "MicaEnabled", isWin11(), BoolValidator())
@@ -48,14 +50,14 @@ class Config(QConfig):
         "MainWindow", "Language", Language.AUTO, OptionsValidator(Language), LanguageSerializer(), restart=True)
 
     # Material
-    blurRadius  = RangeConfigItem("Material", "AcrylicBlurRadius", 15, RangeValidator(0, 40))
+    blurRadius = RangeConfigItem("Material", "AcrylicBlurRadius", 15, RangeValidator(0, 40))
 
     # software update
     checkUpdateAtStartUp = ConfigItem("Update", "CheckUpdateAtStartUp", True, BoolValidator())
 
 
 YEAR = 2023
-AUTHOR = "zhiyiYo"
+AUTHOR = "Atticus-Zhou"
 VERSION = __version__
 HELP_URL = "https://qfluentwidgets.com"
 REPO_URL = "https://github.com/zhiyiYo/PyQt-Fluent-Widgets"

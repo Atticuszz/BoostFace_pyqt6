@@ -1,14 +1,21 @@
 # coding:utf-8
-from qfluentwidgets import (SettingCardGroup, SwitchSettingCard, FolderListSettingCard,
-                            OptionsSettingCard, PushSettingCard,
-                            HyperlinkCard, PrimaryPushSettingCard, ScrollArea,
-                            ComboBoxSettingCard, ExpandLayout, Theme, CustomColorSettingCard,
-                            setTheme, setThemeColor, RangeSettingCard, isDarkTheme)
+from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtWidgets import QWidget, QLabel
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import InfoBar
-from PyQt6.QtCore import Qt, pyqtSignal, QUrl, QStandardPaths
-from PyQt6.QtGui import QDesktopServices
-from PyQt6.QtWidgets import QWidget, QLabel, QFileDialog
+from qfluentwidgets import (
+    SettingCardGroup,
+    SwitchSettingCard,
+    OptionsSettingCard,
+    HyperlinkCard,
+    PrimaryPushSettingCard,
+    ScrollArea,
+    ComboBoxSettingCard,
+    ExpandLayout,
+    CustomColorSettingCard,
+    setTheme,
+    setThemeColor)
 
 from ..common.config import cfg, HELP_URL, FEEDBACK_URL, AUTHOR, VERSION, YEAR, isWin11
 from ..common.signal_bus import signalBus
@@ -26,21 +33,39 @@ class SettingInterface(ScrollArea):
         # setting label
         self.settingLabel = QLabel(self.tr("Settings"), self)
 
-        # music folders
-        self.musicInThisPCGroup = SettingCardGroup(
-            self.tr("Music on this PC"), self.scrollWidget)
-        self.musicFolderCard = FolderListSettingCard(
-            cfg.musicFolders,
-            self.tr("Local music library"),
-            directory=QStandardPaths.writableLocation(QStandardPaths.StandardLocation.MusicLocation),
-            parent=self.musicInThisPCGroup
+        # Camera settings
+        self.cameraGroup = SettingCardGroup(
+            self.tr("Camera"), self.scrollWidget)
+
+        # self.cameraFpsCard = inputcell
+        self.cameraFpsCard = OptionsSettingCard(
+            cfg.cameraFps,
+            FIF.SPEED_HIGH,
+            self.tr('Camera FPS'),
+            self.tr('Set the FPS of the camera'),
+            texts=[
+                '10', '15', '20', '25', '30',
+                self.tr('default')
+            ],
+            parent=self.cameraGroup
         )
-        self.downloadFolderCard = PushSettingCard(
-            self.tr('Choose folder'),
-            FIF.DOWNLOAD,
-            self.tr("Download directory"),
-            cfg.get(cfg.downloadFolder),
-            self.musicInThisPCGroup
+        self.cameraDeviceCard = OptionsSettingCard(
+            cfg.cameraDevice,
+            FIF.CAMERA,
+            self.tr('Camera device'),
+            self.tr('Set the camera device'),
+            texts=[
+                "laptop camera", "external camera"
+            ],
+            parent=self.cameraGroup
+        )
+        self.cameraResolutionCard = OptionsSettingCard(
+            cfg.cameraResolution,
+            FIF.PHOTO,
+            self.tr('Camera resolution'),
+            self.tr('Set the resolution of the camera'),
+            texts=['1920x1080', '1280x720', self.tr('default')],
+            parent=self.cameraGroup
         )
 
         # personalization
@@ -91,17 +116,6 @@ class SettingInterface(ScrollArea):
             parent=self.personalGroup
         )
 
-        # material
-        self.materialGroup = SettingCardGroup(
-            self.tr('Material'), self.scrollWidget)
-        self.blurRadiusCard = RangeSettingCard(
-            cfg.blurRadius,
-            FIF.ALBUM,
-            self.tr('Acrylic blur radius'),
-            self.tr('The greater the radius, the more blurred the image'),
-            self.materialGroup
-        )
-
         # update software
         self.updateSoftwareGroup = SettingCardGroup(
             self.tr("Software update"), self.scrollWidget)
@@ -110,8 +124,7 @@ class SettingInterface(ScrollArea):
             self.tr('Check for updates when the application starts'),
             self.tr('The new version will be more stable and have more features'),
             configItem=cfg.checkUpdateAtStartUp,
-            parent=self.updateSoftwareGroup
-        )
+            parent=self.updateSoftwareGroup)
 
         # application
         self.aboutGroup = SettingCardGroup(self.tr('About'), self.scrollWidget)
@@ -121,14 +134,14 @@ class SettingInterface(ScrollArea):
             FIF.HELP,
             self.tr('Help'),
             self.tr(
-                'Discover new features and learn useful tips about PyQt-Fluent-Widgets'),
+                'Discover new features and learn useful tips about BoostFace'),
             self.aboutGroup
         )
         self.feedbackCard = PrimaryPushSettingCard(
             self.tr('Provide feedback'),
             FIF.FEEDBACK,
             self.tr('Provide feedback'),
-            self.tr('Help us improve PyQt-Fluent-Widgets by providing feedback'),
+            self.tr('Help us improve BoostFace by providing feedback'),
             self.aboutGroup
         )
         self.aboutCard = PrimaryPushSettingCard(
@@ -144,7 +157,8 @@ class SettingInterface(ScrollArea):
 
     def __initWidget(self):
         self.resize(1000, 800)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 80, 0, 20)
         self.setWidget(self.scrollWidget)
         self.setWidgetResizable(True)
@@ -165,16 +179,14 @@ class SettingInterface(ScrollArea):
         self.settingLabel.move(36, 30)
 
         # add cards to group
-        self.musicInThisPCGroup.addSettingCard(self.musicFolderCard)
-        self.musicInThisPCGroup.addSettingCard(self.downloadFolderCard)
-
+        self.cameraGroup.addSettingCard(self.cameraDeviceCard)
+        self.cameraGroup.addSettingCard(self.cameraFpsCard)
+        self.cameraGroup.addSettingCard(self.cameraResolutionCard)
         self.personalGroup.addSettingCard(self.micaCard)
         self.personalGroup.addSettingCard(self.themeCard)
         self.personalGroup.addSettingCard(self.themeColorCard)
         self.personalGroup.addSettingCard(self.zoomCard)
         self.personalGroup.addSettingCard(self.languageCard)
-
-        self.materialGroup.addSettingCard(self.blurRadiusCard)
 
         self.updateSoftwareGroup.addSettingCard(self.updateOnStartUpCard)
 
@@ -185,9 +197,10 @@ class SettingInterface(ScrollArea):
         # add setting card group to layout
         self.expandLayout.setSpacing(28)
         self.expandLayout.setContentsMargins(36, 10, 36, 0)
-        self.expandLayout.addWidget(self.musicInThisPCGroup)
+
+        # 1. set into layout
+        self.expandLayout.addWidget(self.cameraGroup)
         self.expandLayout.addWidget(self.personalGroup)
-        self.expandLayout.addWidget(self.materialGroup)
         self.expandLayout.addWidget(self.updateSoftwareGroup)
         self.expandLayout.addWidget(self.aboutGroup)
 
@@ -200,23 +213,9 @@ class SettingInterface(ScrollArea):
             parent=self
         )
 
-    def __onDownloadFolderCardClicked(self):
-        """ download folder card clicked slot """
-        folder = QFileDialog.getExistingDirectory(
-            self, self.tr("Choose folder"), "./")
-        if not folder or cfg.get(cfg.downloadFolder) == folder:
-            return
-
-        cfg.set(cfg.downloadFolder, folder)
-        self.downloadFolderCard.setContent(folder)
-
     def __connectSignalToSlot(self):
         """ connect signal to slot """
         cfg.appRestartSig.connect(self.__showRestartTooltip)
-
-        # music in the pc
-        self.downloadFolderCard.clicked.connect(
-            self.__onDownloadFolderCardClicked)
 
         # personalization
         self.themeCard.optionChanged.connect(lambda ci: setTheme(cfg.get(ci)))

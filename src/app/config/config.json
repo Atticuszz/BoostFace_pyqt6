@@ -2,12 +2,16 @@
     "Material": {
         "AcrylicBlurRadius": 15
     },
+    "Camera": {
+        "Device": 0,
+        "Fps": 10,
+        "Resolution": [
+            1920,
+            1080
+        ]
+    },
     "Update": {
         "CheckUpdateAtStartUp": true
-    },
-    "Folders": {
-        "Download": "C:/Users/18317/python/BoostFace_pyqt6/src/app/download",
-        "LocalMusic": []
     },
     "MainWindow": {
         "DpiScale": "Auto",
@@ -16,6 +20,6 @@
     },
     "QFluentWidgets": {
         "ThemeColor": "#ff009faa",
-        "ThemeMode": "Dark"
+        "ThemeMode": "Auto"
     }
 }

@@ -1,55 +1,39 @@
 # coding: utf-8
-from PyQt6.QtCore import Qt, pyqtSignal, QEasingCurve, QUrl, QSize
+from PyQt6.QtCore import QUrl, QSize
 from PyQt6.QtGui import QIcon, QDesktopServices
-from PyQt6.QtWidgets import QApplication, QHBoxLayout, QFrame, QWidget
-
-from qfluentwidgets import (NavigationAvatarWidget, NavigationItemPosition, MessageBox, FluentWindow,
-                            SplashScreen)
+from PyQt6.QtWidgets import QApplication
 from qfluentwidgets import FluentIcon as FIF
+from qfluentwidgets import (
+    NavigationAvatarWidget,
+    NavigationItemPosition,
+    MessageBox,
+    FluentWindow,
+    SplashScreen)
 
+from .cloud_dev_interface import CloudDevInterface
 from .gallery_interface import GalleryInterface
 from .home_interface import HomeInterface
-from .basic_input_interface import BasicInputInterface
-from .date_time_interface import DateTimeInterface
-from .dialog_interface import DialogInterface
-from .layout_interface import LayoutInterface
-from .icon_interface import IconInterface
-from .material_interface import MaterialInterface
-from .menu_interface import MenuInterface
-from .navigation_view_interface import NavigationViewInterface
-from .scroll_interface import ScrollInterface
-from .status_info_interface import StatusInfoInterface
+from .local_dev_interface import LocalDevInterface
 from .setting_interface import SettingInterface
-from .text_interface import TextInterface
-from .view_interface import ViewInterface
 from ..common.config import SUPPORT_URL, cfg
-from ..common.icon import Icon
 from ..common.signal_bus import signalBus
 from ..common.translator import Translator
-from ..common import resource
 
 
 class MainWindow(FluentWindow):
 
     def __init__(self):
         super().__init__()
+
+        self.splashScreen = None
         self.initWindow()
 
         # create sub interface
         self.homeInterface = HomeInterface(self)
-        self.iconInterface = IconInterface(self)
-        self.basicInputInterface = BasicInputInterface(self)
-        self.dateTimeInterface = DateTimeInterface(self)
-        self.dialogInterface = DialogInterface(self)
-        self.layoutInterface = LayoutInterface(self)
-        self.menuInterface = MenuInterface(self)
-        self.materialInterface = MaterialInterface(self)
-        self.navigationViewInterface = NavigationViewInterface(self)
-        self.scrollInterface = ScrollInterface(self)
-        self.statusInfoInterface = StatusInfoInterface(self)
+
+        self.local_console_interface = LocalDevInterface(self)
         self.settingInterface = SettingInterface(self)
-        self.textInterface = TextInterface(self)
-        self.viewInterface = ViewInterface(self)
+        self.cloudInterface = CloudDevInterface(self)
 
         # enable acrylic effect
         self.navigationInterface.setAcrylicEnabled(True)
@@ -69,35 +53,48 @@ class MainWindow(FluentWindow):
         # add navigation items
         t = Translator()
         self.addSubInterface(self.homeInterface, FIF.HOME, self.tr('Home'))
-        self.addSubInterface(self.iconInterface, Icon.EMOJI_TAB_SYMBOLS, t.icons)
         self.navigationInterface.addSeparator()
+        self.addSubInterface(
+            self.cloudInterface,
+            FIF.CLOUD,
+            self.tr('Cloud Dev'))
+
+        self.addSubInterface(
+            self.local_console_interface,
+            FIF.COMMAND_PROMPT,
+            self.tr('Local Console'))
 
         pos = NavigationItemPosition.SCROLL
-        self.addSubInterface(self.basicInputInterface, FIF.CHECKBOX,t.basicInput, pos)
-        self.addSubInterface(self.dateTimeInterface, FIF.DATE_TIME, t.dateTime, pos)
-        self.addSubInterface(self.dialogInterface, FIF.MESSAGE, t.dialogs, pos)
-        self.addSubInterface(self.layoutInterface, FIF.LAYOUT, t.layout, pos)
-        self.addSubInterface(self.materialInterface, FIF.PALETTE, t.material, pos)
-        self.addSubInterface(self.menuInterface, Icon.MENU, t.menus, pos)
-        self.addSubInterface(self.navigationViewInterface, FIF.MENU, t.navigation, pos)
-        self.addSubInterface(self.scrollInterface, FIF.SCROLL, t.scroll, pos)
-        self.addSubInterface(self.statusInfoInterface, FIF.CHAT, t.statusInfo, pos)
-        self.addSubInterface(self.textInterface, Icon.TEXT, t.text, pos)
-        self.addSubInterface(self.viewInterface, Icon.GRID, t.view, pos)
 
         # add custom widget to bottom
         self.navigationInterface.addWidget(
             routeKey='avatar',
-            widget=NavigationAvatarWidget('zhiyiYo', ':/gallery/images/shoko.png'),
-            onClick=self.onSupport,
+            widget=NavigationAvatarWidget(
+                'zhiyiYo', ':/gallery/images/shoko.png'),
+            onClick=self.onSupport,  # TODO: login dialog
             position=NavigationItemPosition.BOTTOM
         )
         self.addSubInterface(
-            self.settingInterface, FIF.SETTING, self.tr('Settings'), NavigationItemPosition.BOTTOM)
+            self.settingInterface,
+            FIF.SETTING,
+            self.tr('Settings'),
+            NavigationItemPosition.BOTTOM)
+        self.addSubInterface(
+            self.settingInterface,
+            FIF.SETTING,
+            self.tr('Settings'),
+            NavigationItemPosition.BOTTOM)
 
     def initWindow(self):
-        self.resize(960, 780)
+        """
+        Initialize the window,splash screen and FluentWindow
+        """
+        # set full screen size
+        desktop = QApplication.screens()[0].availableGeometry()
+        w, h = desktop.width(), desktop.height()
+        self.resize(w, h)
         self.setMinimumWidth(760)
+
         self.setWindowIcon(QIcon(':/gallery/images/logo.png'))
         self.setWindowTitle('PyQt-Fluent-Widgets')
 
@@ -105,12 +102,10 @@ class MainWindow(FluentWindow):
 
         # create splash screen
         self.splashScreen = SplashScreen(self.windowIcon(), self)
-        self.splashScreen.setIconSize(QSize(106, 106))
+        self.splashScreen.setIconSize(QSize(106 * 2, 106 * 2))
         self.splashScreen.raise_()
 
-        desktop = QApplication.screens()[0].availableGeometry()
-        w, h = desktop.width(), desktop.height()
-        self.move(w//2 - self.width()//2, h//2 - self.height()//2)
+        self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
         self.show()
         QApplication.processEvents()
 

@@ -14,6 +14,7 @@ from .detector.common import Image, Image2Detect, Bbox, Color
 __all__ = ["AiCamera"]
 
 from .detector import Detector
+from ..common.config import cfg
 
 
 class CameraOpenError(Exception):
@@ -50,7 +51,7 @@ class Camera:
     read image from camera by opencv.VideoCapture.read() from the given url
     """
 
-    def __init__(self, config: CameraConfig = CameraConfig()):
+    def __init__(self, config: CameraConfig = CameraConfig(fps=cfg.cameraFps.value)):
         """
         cmd 运行setx OPENCV_VIDEOIO_PRIORITY_MSMF 0后重启，可以加快摄像头打开的速度
         :param config: CameraOptions()

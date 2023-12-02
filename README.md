@@ -9,23 +9,21 @@
 
 ## Project Architecture
 - layout
-    - home
+    - home UI✅
         - total state
         - camera
         - access record
-    - setting
+    - setting UI✅
         - camera setting
-        - cloud setting
-    - dev
+        - basic setting...
+    - local-dev-info UI✅
         - desktop app console logs
+        - camera info
+        - desktop system monitor
+    - cloud-dev-info UI✅
         - cloud app console logs
-    - about
-        - about us
-        - about app
-        - about cloud
-    - login
-        - login
-        - register
+        - cloud info
+        - cloud system monitor
 
 ## Project Process🌈
 

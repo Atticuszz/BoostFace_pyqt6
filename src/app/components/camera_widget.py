@@ -121,14 +121,15 @@ class StateWidget(QWidget):
     """
     state_card
     |---background
-    |---card a
-    |---card b
-    |---card c
+    |---card CPU
+    |---card RAM
+    |---card Running time
+    |---card connect to cloud
     """
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.setFixedHeight(240)
+        self.setFixedHeight(200)
 
         self.vBoxLayout = QVBoxLayout(self)
 
