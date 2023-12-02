@@ -26,16 +26,14 @@
         - cloud system monitor
 
 ## Project Process🌈
-
-1. basic layout by pyqt6
-    - camera info
-    - cloud info
-    - desktop dev info
-    - cloud dev info
-2. Ai camera by BoostFace
-    - video_widget
-    - BoostFace
-    - camera setting
-3. cloud client to connect with fastapi cloud compute
-    - cloud setting
-    - register desktop app
+1. basic layout by pyqt6 ✅
+    1. main_window
+    2. home_ui
+    3. setting_ui
+    4. local_dev_info_ui
+    5. cloud_dev_info_ui
+2. how to config?
+3. fastapi client?
+    1. login?
+    2. connect to cloud?
+4. boostface integration local and connect to cloud?
