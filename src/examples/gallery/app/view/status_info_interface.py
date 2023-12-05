@@ -1,7 +1,7 @@
 # coding:utf-8
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap, QColor
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel, QVBoxLayout
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel
 from qfluentwidgets import (StateToolTip, InfoBadge, ToolTipFilter, PushButton, PixmapLabel,
                             InfoBar, InfoBarIcon, FluentIcon, InfoBarPosition, ProgressBar,
                             IndeterminateProgressBar, SpinBox, ProgressRing, IndeterminateProgressRing)
@@ -17,7 +17,7 @@ class StatusInfoInterface(GalleryInterface):
         t = Translator()
         super().__init__(
             title=t.statusInfo,
-            subtitle="qfluentwidgets.components.widgets",
+            subtitle="qfluentwidgets.component.widgets",
             parent=parent
         )
         self.setObjectName('statusInfoInterface')

@@ -1,23 +1,8 @@
-import time
-
-from PyQt6.QtCore import QThread, pyqtSignal
-from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 from qfluentwidgets import FluentIcon as FIF, TextEdit
 
-from src.app.components.expand_info_card import ExpandInfoCard
-from src.app.components.system_monitor import SystemMonitor
-
-
-class ConsoleSimulator(QThread):
-    newText = pyqtSignal(str)
-
-    def run(self):
-        count = 0
-        while True:
-            time.sleep(1)  # 控制输出速度
-            count += 1
-            self.newText.emit(f"Line {count}: The current count is {count}\n")
+from src.app.view.component.expand_info_card import ExpandInfoCard
+from src.app.view.component.system_monitor import SystemMonitor
 
 
 class CloudDevInterface(QWidget):
@@ -53,17 +38,6 @@ class CloudDevInterface(QWidget):
             self.tr('Cloud Server Info'),
             parent=self
         )
-        self.cloud_info_card.add_info(
-            {
-                'domain': "www.digitalocean.com",
-                'location': 'New York',
-                'OS': 'Ubuntu 20.04',
-                'CPU': '4 vCPU',
-                'RAM': '8 GB',
-                'GPU': 'NVIDIA RTX 3080',
-                'Storage': '1 TB',
-            }
-        )
 
     def _init_resource_monitor(self):
         # C区域：资源监测图表
@@ -78,17 +52,3 @@ class CloudDevInterface(QWidget):
         self.console_log = TextEdit()
         self.console_log.setReadOnly(True)
         self.a_layout.addWidget(self.console_log)
-        self.console_simulator = ConsoleSimulator(self)
-        self.console_simulator.newText.connect(self.append_text)
-        self.console_simulator.start()
-
-    def append_text(self, text):
-        """
-        listen to the newText signal and append the text to the text edit
-        :param text:
-        :return:
-        """
-        cursor = self.console_log.textCursor()
-        cursor.movePosition(QTextCursor.MoveOperation.End)
-        cursor.insertText(text)
-        self.console_log.setTextCursor(cursor)

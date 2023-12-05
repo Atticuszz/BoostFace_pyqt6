@@ -1,11 +1,10 @@
 # coding:utf-8
 from PyQt6.QtGui import QColor
 from qfluentwidgets.components.widgets.acrylic_label import AcrylicLabel
-from qfluentwidgets import FluentIcon as FIF
 
 from .gallery_interface import GalleryInterface
-from ..common.translator import Translator
 from ..common.config import cfg
+from ..common.translator import Translator
 
 
 class MaterialInterface(GalleryInterface):
@@ -15,7 +14,7 @@ class MaterialInterface(GalleryInterface):
         t = Translator()
         super().__init__(
             title=t.material,
-            subtitle='qfluentwidgets.components.widgets',
+            subtitle='qfluentwidgets.component.widgets',
             parent=parent
         )
         self.setObjectName('materialInterface')

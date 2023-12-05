@@ -4,7 +4,7 @@ from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget, QHBoxLayout
 from qfluentwidgets import IconWidget, FluentIcon, TextWrap, SingleDirectionScrollArea
 
-from src.app.common.style_sheet import StyleSheet
+from src.app.view.style_sheet import StyleSheet
 
 
 class LinkCard(QFrame):

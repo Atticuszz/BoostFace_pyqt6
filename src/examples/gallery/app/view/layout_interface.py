@@ -13,7 +13,7 @@ class LayoutInterface(GalleryInterface):
         t = Translator()
         super().__init__(
             title=t.layout,
-            subtitle="qfluentwidgets.components.layout",
+            subtitle="qfluentwidgets.component.layout",
             parent=parent
         )
         self.setObjectName('layoutInterface')

@@ -6,8 +6,8 @@ from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout
 from qfluentwidgets import FluentIcon as FIF, TextEdit
 
-from src.app.components.expand_info_card import ExpandInfoCard
-from src.app.components.system_monitor import SystemMonitor
+from src.app.view.component import ExpandInfoCard
+from src.app.view.component.system_monitor import SystemMonitor
 
 
 class ConsoleSimulator(QThread):

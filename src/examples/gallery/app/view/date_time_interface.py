@@ -13,7 +13,7 @@ class DateTimeInterface(GalleryInterface):
         t = Translator()
         super().__init__(
             title=t.dateTime,
-            subtitle='qfluentwidgets.components.time_picker',
+            subtitle='qfluentwidgets.component.time_picker',
             parent=parent
         )
         self.setObjectName('dateTimeInterface')

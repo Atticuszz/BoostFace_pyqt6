@@ -15,7 +15,7 @@ class TextInterface(GalleryInterface):
         t = Translator()
         super().__init__(
             title=t.text,
-            subtitle="qfluentwidgets.components.widgets",
+            subtitle="qfluentwidgets.component.widgets",
             parent=parent
         )
         self.setObjectName('textInterface')

@@ -1,12 +1,13 @@
 # coding=utf-8
-import random
 # coding: utf-8
 import sys
 
-from PyQt6.QtCore import QModelIndex, Qt, QThread, pyqtSignal
+from PyQt6.QtCore import QModelIndex, Qt
 from PyQt6.QtGui import QPalette
 from PyQt6.QtWidgets import QApplication, QStyleOptionViewItem, QTableWidgetItem, QWidget, QHBoxLayout
 from qfluentwidgets import TableWidget, isDarkTheme, TableItemDelegate
+
+from src.app.model.component_model.result_widget_model import RsultWidgetModel
 
 
 class CustomTableItemDelegate(TableItemDelegate):
@@ -36,29 +37,11 @@ class CustomTableItemDelegate(TableItemDelegate):
                 Qt.GlobalColor.red)
 
 
-class DataGeneratorThread(QThread):
-    newData = pyqtSignal(list)  # Signal to emit new data
-
-    def run(self):
-        while True:
-            self.sleep(1)  # Wait for 1 second
-            data = [
-                str(
-                    random.randint(
-                        1, 100)), "Name {}".format(
-                    random.randint(
-                        1, 100)), "gender {}".format(
-                    random.randint(
-                        1, 100)), "Time {}".format(
-                    random.randint(
-                        1, 100))]
-            self.newData.emit(data)  # Emit the signal with new data
-
-
 class ResultsWidget(QWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self, model: RsultWidgetModel | None = None, parent=None):
         super().__init__(parent=parent)
+        self.model = model
         # setTheme(Theme.DARK)
 
         # NOTE: use custom item delegate
@@ -68,16 +51,8 @@ class ResultsWidget(QWidget):
         # self.tableView.setSelectRightClickedRow(True)
 
         self._init_ui()
-        self.tableView.setColumnCount(4)  # 设置为三列
-
-        self.tableView.setHorizontalHeaderLabels(
-            ['ID', 'Name', 'gender', 'Time'])
-
-        # 填充表格数据，您需要根据您的需求调整这里的数据
-        # Start the data generation thread
-        self.dataThread = DataGeneratorThread(self)
-        self.dataThread.newData.connect(self.addTableRow)
-        self.dataThread.start()
+        self.tableView.setColumnCount(self.model.column_count)
+        self.tableView.setHorizontalHeaderLabels(self.model.headers)
 
         self.setStyleSheet("Demo{background: rgb(255, 255, 255)} ")
         # self.hBoxLayout.setContentsMargins(50, 30, 50, 30)
@@ -95,16 +70,28 @@ class ResultsWidget(QWidget):
         self.tableView.verticalHeader().hide()
         self.tableView.resizeColumnsToContents()
 
-    def addTableRow(self, data):
+    def addTableRow(self, data: list[str]):
+        """
+        update table
+        """
         row_position = self.tableView.rowCount()
         self.tableView.insertRow(row_position)
         for i, value in enumerate(data):
             self.tableView.setItem(row_position, i, QTableWidgetItem(value))
 
+    def closeEvent(self, event):
+        if self.model.isRunning():
+            self.model.stop()
+        super().closeEvent(event)
+
 
 if __name__ == "__main__":
+    from src.app.controller.component_controller.result_widget_contoller import ResultsController
+
     # 示例窗口
     app = QApplication(sys.argv)
-    demo = ResultsWidget()
+    model = RsultWidgetModel()
+    demo = ResultsWidget(model)
+    controller = ResultsController(model, demo)
     demo.show()
     sys.exit(app.exec())

@@ -1,11 +1,14 @@
 # coding:utf-8
-from PyQt6.QtCore import Qt, QSize, QUrl
+from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QButtonGroup
 from qfluentwidgets import (Action, DropDownPushButton, DropDownToolButton, PushButton, ToolButton, PrimaryPushButton,
                             HyperlinkButton, ComboBox, RadioButton, CheckBox, Slider, SwitchButton, EditableComboBox,
-                            ToggleButton, RoundMenu, FluentIcon, SplitPushButton, SplitToolButton, PrimarySplitToolButton,
-                            PrimarySplitPushButton, PrimaryDropDownPushButton, PrimaryToolButton, PrimaryDropDownToolButton,
-                            ToggleToolButton, TransparentDropDownPushButton, TransparentPushButton, TransparentToggleToolButton,
+                            ToggleButton, RoundMenu, FluentIcon, SplitPushButton, SplitToolButton,
+                            PrimarySplitToolButton,
+                            PrimarySplitPushButton, PrimaryDropDownPushButton, PrimaryToolButton,
+                            PrimaryDropDownToolButton,
+                            ToggleToolButton, TransparentDropDownPushButton, TransparentPushButton,
+                            TransparentToggleToolButton,
                             TransparentTogglePushButton, TransparentDropDownToolButton, TransparentToolButton,
                             PillPushButton, PillToolButton)
 
@@ -20,7 +23,7 @@ class BasicInputInterface(GalleryInterface):
         translator = Translator()
         super().__init__(
             title=translator.basicInput,
-            subtitle='qfluentwidgets.components.widgets',
+            subtitle='qfluentwidgets.component.widgets',
             parent=parent
         )
         self.setObjectName('basicInputInterface')

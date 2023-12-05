@@ -1,6 +1,5 @@
 # coding:utf-8
-from PyQt6.QtCore import Qt, QUrl
-from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QLabel
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import InfoBar
@@ -13,20 +12,20 @@ from qfluentwidgets import (
     ScrollArea,
     ComboBoxSettingCard,
     ExpandLayout,
-    CustomColorSettingCard,
-    setTheme,
-    setThemeColor)
+    CustomColorSettingCard)
 
-from ..common.config import cfg, HELP_URL, FEEDBACK_URL, AUTHOR, VERSION, YEAR, isWin11
-from ..common.signal_bus import signalBus
-from ..common.style_sheet import StyleSheet
+from src.app.common.config import cfg, isWin11
+from src.app.model.view_model.setting_model import SettingModel
+from src.app.view.style_sheet import StyleSheet
 
 
 class SettingInterface(ScrollArea):
     """ Setting interface """
 
-    def __init__(self, parent=None):
+    def __init__(self, model: SettingModel, parent=None):
         super().__init__(parent=parent)
+
+        self.model = model
         self.scrollWidget = QWidget()
         self.expandLayout = ExpandLayout(self.scrollWidget)
 
@@ -37,40 +36,35 @@ class SettingInterface(ScrollArea):
         self.cameraGroup = SettingCardGroup(
             self.tr("Camera"), self.scrollWidget)
 
-        # self.cameraFpsCard = inputcell
         self.cameraFpsCard = OptionsSettingCard(
-            cfg.cameraFps,
+            self.model.camera_fps,
             FIF.SPEED_HIGH,
             self.tr('Camera FPS'),
             self.tr('Set the FPS of the camera'),
-            texts=[
-                '10', '15', '20', '25', '30',
-                self.tr('default')
-            ],
+            texts=self.model.camera_fps_options_texts,
             parent=self.cameraGroup
         )
         self.cameraDeviceCard = OptionsSettingCard(
-            cfg.cameraDevice,
+            self.model.camera_device,
             FIF.CAMERA,
             self.tr('Camera device'),
             self.tr('Set the camera device'),
-            texts=[
-                "laptop camera", "external camera"
-            ],
+            texts=self.model.camera_device_options_texts,
             parent=self.cameraGroup
         )
         self.cameraResolutionCard = OptionsSettingCard(
-            cfg.cameraResolution,
+            self.model.camera_resolution,
             FIF.PHOTO,
             self.tr('Camera resolution'),
             self.tr('Set the resolution of the camera'),
-            texts=['1920x1080', '1280x720', self.tr('default')],
+            texts=self.model.camera_resolution_options_texts,
             parent=self.cameraGroup
         )
 
         # personalization
         self.personalGroup = SettingCardGroup(
             self.tr('Personalization'), self.scrollWidget)
+
         self.micaCard = SwitchSettingCard(
             FIF.TRANSPARENT,
             self.tr('Mica effect'),
@@ -78,8 +72,9 @@ class SettingInterface(ScrollArea):
             cfg.micaEnabled,
             self.personalGroup
         )
+
         self.themeCard = OptionsSettingCard(
-            cfg.themeMode,
+            self.model.theme_mode,
             FIF.BRUSH,
             self.tr('Application theme'),
             self.tr("Change the appearance of your application"),
@@ -90,14 +85,14 @@ class SettingInterface(ScrollArea):
             parent=self.personalGroup
         )
         self.themeColorCard = CustomColorSettingCard(
-            cfg.themeColor,
+            self.model.theme_color,
             FIF.PALETTE,
             self.tr('Theme color'),
             self.tr('Change the theme color of you application'),
-            self.personalGroup
+            parent=self.personalGroup
         )
         self.zoomCard = OptionsSettingCard(
-            cfg.dpiScale,
+            self.model.dpi_scale,
             FIF.ZOOM,
             self.tr("Interface zoom"),
             self.tr("Change the size of widgets and fonts"),
@@ -108,7 +103,7 @@ class SettingInterface(ScrollArea):
             parent=self.personalGroup
         )
         self.languageCard = ComboBoxSettingCard(
-            cfg.language,
+            self.model.language,
             FIF.LANGUAGE,
             self.tr('Language'),
             self.tr('Set your preferred language for UI'),
@@ -123,13 +118,13 @@ class SettingInterface(ScrollArea):
             FIF.UPDATE,
             self.tr('Check for updates when the application starts'),
             self.tr('The new version will be more stable and have more features'),
-            configItem=cfg.checkUpdateAtStartUp,
+            configItem=self.model.check_update,
             parent=self.updateSoftwareGroup)
 
         # application
         self.aboutGroup = SettingCardGroup(self.tr('About'), self.scrollWidget)
         self.helpCard = HyperlinkCard(
-            HELP_URL,
+            self.model.help_url,
             self.tr('Open help page'),
             FIF.HELP,
             self.tr('Help'),
@@ -148,8 +143,8 @@ class SettingInterface(ScrollArea):
             self.tr('Check update'),
             FIF.INFO,
             self.tr('About'),
-            '© ' + self.tr('Copyright') + f" {YEAR}, {AUTHOR}. " +
-            self.tr('Version') + " " + VERSION,
+            '© ' + self.tr('Copyright') + f" {self.model.year}, {self.model.author}. " +
+            self.tr('Version') + " " + self.model.version,
             self.aboutGroup
         )
 
@@ -173,7 +168,6 @@ class SettingInterface(ScrollArea):
 
         # initialize layout
         self.__initLayout()
-        self.__connectSignalToSlot()
 
     def __initLayout(self):
         self.settingLabel.move(36, 30)
@@ -204,7 +198,7 @@ class SettingInterface(ScrollArea):
         self.expandLayout.addWidget(self.updateSoftwareGroup)
         self.expandLayout.addWidget(self.aboutGroup)
 
-    def __showRestartTooltip(self):
+    def _showRestartTooltip(self):
         """ show restart tooltip """
         InfoBar.success(
             self.tr('Updated successfully'),
@@ -212,16 +206,3 @@ class SettingInterface(ScrollArea):
             duration=1500,
             parent=self
         )
-
-    def __connectSignalToSlot(self):
-        """ connect signal to slot """
-        cfg.appRestartSig.connect(self.__showRestartTooltip)
-
-        # personalization
-        self.themeCard.optionChanged.connect(lambda ci: setTheme(cfg.get(ci)))
-        self.themeColorCard.colorChanged.connect(setThemeColor)
-        self.micaCard.checkedChanged.connect(signalBus.micaEnableChanged)
-
-        # about
-        self.feedbackCard.clicked.connect(
-            lambda: QDesktopServices.openUrl(QUrl(FEEDBACK_URL)))

@@ -2,13 +2,12 @@
 from PyQt6.QtCore import Qt, QRectF
 from PyQt6.QtGui import QPixmap, QPainter, QColor, QBrush, QPainterPath, QLinearGradient
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
-
 from qfluentwidgets import ScrollArea, isDarkTheme, FluentIcon
-from ..common.config import cfg, HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
-from ..common.icon import Icon, FluentIconBase
+
+from ..common.config import HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
+from ..common.style_sheet import StyleSheet
 from ..components.link_card import LinkCardView
 from ..components.sample_card import SampleCardView
-from ..common.style_sheet import StyleSheet
 
 
 class BannerWidget(QWidget):
@@ -279,7 +278,7 @@ class HomeInterface(ScrollArea):
             icon=":/gallery/images/controls/Grid.png",
             title="FlowLayout",
             content=self.tr(
-                "A layout arranges components in a left-to-right flow, wrapping to the next row when the current row is full."),
+                "A layout arranges component in a left-to-right flow, wrapping to the next row when the current row is full."),
             routeKey="layoutInterface",
             index=0
         )

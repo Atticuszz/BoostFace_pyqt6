@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import QApplication
 from qfluentwidgets import FluentTranslator
 
 from app.common.config import cfg
-from app.view.main_window import MainWindow
+from src.app.view.main_window import MainWindow
 
 # enable dpi scale
 if cfg.get(cfg.dpiScale) != "Auto":

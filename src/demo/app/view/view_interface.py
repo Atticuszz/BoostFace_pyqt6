@@ -1,11 +1,12 @@
 # coding:utf-8
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QFrame, QTreeWidgetItem, QHBoxLayout, QTreeWidgetItemIterator, QTableWidgetItem, QListWidgetItem
+from PyQt6.QtWidgets import QFrame, QTreeWidgetItem, QHBoxLayout, QTreeWidgetItemIterator, QTableWidgetItem, \
+    QListWidgetItem
 from qfluentwidgets import TreeWidget, TableWidget, ListWidget, HorizontalFlipView
 
 from .gallery_interface import GalleryInterface
-from ..common.translator import Translator
 from ..common.style_sheet import StyleSheet
+from ..common.translator import Translator
 
 
 class ViewInterface(GalleryInterface):
@@ -15,7 +16,7 @@ class ViewInterface(GalleryInterface):
         t = Translator()
         super().__init__(
             title=t.view,
-            subtitle="qfluentwidgets.components.widgets",
+            subtitle="qfluentwidgets.component.widgets",
             parent=parent
         )
         self.setObjectName('viewInterface')

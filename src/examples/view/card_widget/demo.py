@@ -5,14 +5,12 @@ from pathlib import Path
 from PyQt6.QtCore import Qt, QPoint, QSize, QUrl, QRect, QPropertyAnimation
 from PyQt6.QtGui import QIcon, QFont, QColor, QPainter
 from PyQt6.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QGraphicsOpacityEffect
-
-from qfluentwidgets import (CardWidget, setTheme, Theme, IconWidget, BodyLabel, CaptionLabel, PushButton,
+from qfluentwidgets import (CardWidget, IconWidget, BodyLabel, CaptionLabel, PushButton,
                             TransparentToolButton, FluentIcon, RoundMenu, Action, ElevatedCardWidget,
                             ImageLabel, isDarkTheme, FlowLayout, MSFluentTitleBar, SimpleCardWidget,
                             HeaderCardWidget, InfoBarIcon, HyperlinkLabel, HorizontalFlipView,
                             PrimaryPushButton, TitleLabel, PillPushButton, setFont, SingleDirectionScrollArea,
                             VerticalSeparator, MSFluentWindow, NavigationItemPosition)
-
 from qfluentwidgets.components.widgets.acrylic_label import AcrylicBrush
 
 
@@ -389,7 +387,7 @@ class Demo2(MicaWindow):
         self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         suffix = ":/qfluentwidgets/images/controls"
-        self.addCard(f":/qfluentwidgets/images/logo.png", "PyQt-Fluent-Widgets", 'Shokokawaii Inc.')
+        self.addCard(":/qfluentwidgets/images/logo.png", "PyQt-Fluent-Widgets", 'Shokokawaii Inc.')
         self.addCard(f"{suffix}/TitleBar.png", "PyQt-Frameless-Window", 'Shokokawaii Inc.')
         self.addCard(f"{suffix}/RatingControl.png", "反馈中心", 'Microsoft Corporation')
         self.addCard(f"{suffix}/Checkbox.png", "Microsoft 使用技巧", 'Microsoft Corporation')
@@ -450,7 +448,7 @@ class Demo3(MSFluentWindow):
 
         self.appInterface = AppInterface(self)
 
-        # add sub interfaces
+        # add sub interface
         self.addSubInterface(self.appInterface, FluentIcon.LIBRARY, "库", FluentIcon.LIBRARY_FILL, isTransparent=True)
         self.navigationInterface.addItem("editInterface", FluentIcon.EDIT, "编辑", selectable=False)
 

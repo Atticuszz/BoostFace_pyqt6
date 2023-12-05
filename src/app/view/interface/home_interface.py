@@ -1,8 +1,8 @@
 # coding:utf-8
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 
-from ..components.camera_widget import CameraWidget, StateWidget
-from ..components.result_widget import ResultsWidget
+from src.app.model.component_model.camera_model import CameraModel
+from src.app.view.component.camera_widget import CameraWidget, StateWidget
 
 
 class HomeInterface(QWidget):
@@ -51,3 +51,22 @@ class HomeInterface(QWidget):
         """
         self.result_widget = ResultsWidget()
         self.right_layout.addWidget(self.result_widget)
+
+
+if __name__ == '__main__':
+    import sys
+    from PyQt6.QtWidgets import QApplication
+    from src.app.controller.component_controller.camera_controller import CameraController
+    from src.app.model.component_model.result_widget_model import RsultWidgetModel
+    from src.app.view.component.result_widget import ResultsWidget
+    from src.app.controller.component_controller.result_widget_contoller import ResultsController
+
+    app = QApplication(sys.argv)
+    model = CameraModel()
+    view = CameraWidget(model=model)
+    controller = CameraController(model, view)
+    model2 = RsultWidgetModel()
+    view2 = ResultsWidget(model2)
+    controller2 = ResultsController(model2, view2)
+    HomeInterface().show()
+    sys.exit(app.exec())

@@ -1,12 +1,12 @@
 # coding:utf-8
 from PyQt6.QtCore import QPoint, Qt, QStandardPaths
-from PyQt6.QtGui import QColor
 from PyQt6.QtGui import QAction, QActionGroup
+from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QFileDialog
-from qfluentwidgets import (RoundMenu, PushButton, Action, CommandBar, Action, TransparentDropDownPushButton,
+from qfluentwidgets import FluentIcon as FIF
+from qfluentwidgets import (RoundMenu, PushButton, CommandBar, Action, TransparentDropDownPushButton,
                             setFont, CommandBarView, Flyout, ImageLabel, FlyoutAnimationType, CheckableMenu,
                             MenuIndicatorType, AvatarWidget, isDarkTheme, BodyLabel, CaptionLabel, HyperlinkButton)
-from qfluentwidgets import FluentIcon as FIF
 
 from .gallery_interface import GalleryInterface
 from ..common.translator import Translator
@@ -19,7 +19,7 @@ class MenuInterface(GalleryInterface):
         t = Translator()
         super().__init__(
             title=t.menus,
-            subtitle='qfluentwidgets.components.widgets',
+            subtitle='qfluentwidgets.component.widgets',
             parent=parent
         )
         self.setObjectName('menuInterface')

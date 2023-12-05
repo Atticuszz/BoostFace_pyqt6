@@ -1,9 +1,7 @@
 # coding:utf-8
-from PyQt6.QtCore import Qt, QEasingCurve
-from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QWidget
-from qfluentwidgets import (SingleDirectionScrollArea, SmoothScrollArea, ToolTipFilter, PixmapLabel,
-                            ScrollArea, ImageLabel, HorizontalPipsPager, PipsScrollButtonDisplayMode, VerticalPipsPager)
+from PyQt6.QtCore import Qt
+from qfluentwidgets import (SingleDirectionScrollArea, SmoothScrollArea, ToolTipFilter, ScrollArea, ImageLabel,
+                            HorizontalPipsPager, PipsScrollButtonDisplayMode)
 
 from .gallery_interface import GalleryInterface
 from ..common.translator import Translator
@@ -16,7 +14,7 @@ class ScrollInterface(GalleryInterface):
         t = Translator()
         super().__init__(
             title=t.scroll,
-            subtitle="qfluentwidgets.components.widgets",
+            subtitle="qfluentwidgets.component.widgets",
             parent=parent
         )
         self.setObjectName('scrollInterface')

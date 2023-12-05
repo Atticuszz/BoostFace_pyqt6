@@ -1,11 +1,11 @@
 # coding:utf-8
 from PyQt6.QtCore import Qt, QUrl
-
 from qfluentwidgets import (PushButton, Dialog, MessageBox, ColorDialog, TeachingTip, TeachingTipTailPosition,
                             InfoBarIcon, Flyout, FlyoutView, TeachingTipView, FlyoutAnimationType, SubtitleLabel,
                             LineEdit, MessageBoxBase)
-from ..common.translator import Translator
+
 from .gallery_interface import GalleryInterface
+from ..common.translator import Translator
 
 
 class DialogInterface(GalleryInterface):
@@ -15,7 +15,7 @@ class DialogInterface(GalleryInterface):
         t = Translator()
         super().__init__(
             title=t.dialogs,
-            subtitle='qfluentwidgets.components.dialog_box',
+            subtitle='qfluentwidgets.component.dialog_box',
             parent=parent
         )
         self.setObjectName('dialogInterface')

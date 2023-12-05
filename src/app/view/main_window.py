@@ -9,15 +9,15 @@ from qfluentwidgets import (
     MessageBox,
     FluentWindow,
     SplashScreen)
+from src.app.view.interface.gallery_interface import GalleryInterface
 
-from .cloud_dev_interface import CloudDevInterface
-from .gallery_interface import GalleryInterface
-from .home_interface import HomeInterface
-from .local_dev_interface import LocalDevInterface
-from .setting_interface import SettingInterface
-from ..common.config import SUPPORT_URL, cfg
-from ..common.signal_bus import signalBus
-from ..common.translator import Translator
+from src.app.common.config import SUPPORT_URL, cfg
+from src.app.common.signal_bus import signalBus
+from src.app.common.translator import Translator
+from src.app.view.interface.cloud_dev_interface import CloudDevInterface
+from src.app.view.interface.home_interface import HomeInterface
+from src.app.view.interface.local_dev_interface import LocalDevInterface
+from src.app.view.interface.setting_interface import SettingInterface
 
 
 class MainWindow(FluentWindow):

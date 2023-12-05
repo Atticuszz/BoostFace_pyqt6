@@ -1,13 +1,13 @@
 # coding:utf-8
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QWidget, QStackedWidget, QVBoxLayout, QLabel, QHBoxLayout, QFrame, QSizePolicy
+from PyQt6.QtWidgets import QWidget, QStackedWidget, QVBoxLayout, QLabel, QHBoxLayout, QFrame
 from qfluentwidgets import (Pivot, qrouter, SegmentedWidget, TabBar, CheckBox, ComboBox,
                             TabCloseButtonDisplayMode, BodyLabel, SpinBox, BreadcrumbBar,
                             SegmentedToggleToolWidget, FluentIcon)
 
 from .gallery_interface import GalleryInterface
-from ..common.translator import Translator
 from ..common.style_sheet import StyleSheet
+from ..common.translator import Translator
 
 
 class NavigationViewInterface(GalleryInterface):
@@ -17,7 +17,7 @@ class NavigationViewInterface(GalleryInterface):
         t = Translator()
         super().__init__(
             title=t.navigation,
-            subtitle="qfluentwidgets.components.navigation",
+            subtitle="qfluentwidgets.component.navigation",
             parent=parent
         )
         self.setObjectName('navigationViewInterface')

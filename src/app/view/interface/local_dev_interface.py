@@ -1,23 +1,10 @@
-import time
 
-from PyQt6.QtCore import QThread, pyqtSignal
 from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 from qfluentwidgets import FluentIcon as FIF, TextEdit
 
-from src.app.components.expand_info_card import ExpandInfoCard
-from src.app.components.system_monitor import SystemMonitor
-
-
-class ConsoleSimulator(QThread):
-    newText = pyqtSignal(str)
-
-    def run(self):
-        count = 0
-        while True:
-            time.sleep(1)  # 控制输出速度
-            count += 1
-            self.newText.emit(f"Line {count}: The current count is {count}\n")
+from src.app.view.component.expand_info_card import ExpandInfoCard
+from src.app.view.component.system_monitor import SystemMonitor
 
 
 class LocalDevInterface(QWidget):
