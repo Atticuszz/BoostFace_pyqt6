@@ -8,6 +8,8 @@ class SignalBus(QObject):
     switchToSampleCard = pyqtSignal(str, int)
     micaEnableChanged = pyqtSignal(bool)
     supportSignal = pyqtSignal()
+    login_failed = pyqtSignal(str)
+    login_successfully = pyqtSignal(str)
 
 
 signalBus = SignalBus()

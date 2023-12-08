@@ -10,9 +10,9 @@ class CameraController:
         self.view = view
 
         # update image
-        self.model.change_pixmap_signal.connect(self.view.update_image)
+        self.model.change_pixmap_signal.connect(self.view.cameraCard.update_image)
         # toggle camera
-        self.view.toggle_switch.clicked.connect(self.toggle_camera)
+        self.view.cameraCard.toggle_switch.clicked.connect(self.toggle_camera)
         # bind close event
 
     def toggle_camera(self):
@@ -23,4 +23,4 @@ class CameraController:
             self.model.stop_capture()
         else:
             self.model.start_capture()
-            self.view.reset_image()
+            self.view.cameraCard.reset_image()

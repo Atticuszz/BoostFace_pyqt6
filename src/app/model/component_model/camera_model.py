@@ -43,8 +43,9 @@ class CameraModel(QThread):
         # 停止摄像头和视频线程
         if self.isRunning():
             self._is_running = False
-            self.capture.release()
+            self.wait()
 
     def stop(self):
         self._is_running = False
         self.wait()
+        self.capture.release()

@@ -34,6 +34,6 @@
     5. cloud_dev_info_ui
 2. how to config?
 3. fastapi client?
-    1. login?
+    1. login? ->✅
     2. connect to cloud?
 4. boostface integration local and connect to cloud?

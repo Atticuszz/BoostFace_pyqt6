@@ -9,7 +9,6 @@ from qfluentwidgets import (
     MessageBox,
     FluentWindow,
     SplashScreen)
-from src.app.view.interface.gallery_interface import GalleryInterface
 
 from src.app.common.config import SUPPORT_URL, cfg
 from src.app.common.signal_bus import signalBus
@@ -30,7 +29,6 @@ class MainWindow(FluentWindow):
 
         # create sub interface
         self.homeInterface = HomeInterface(self)
-
         self.local_console_interface = LocalDevInterface(self)
         self.settingInterface = SettingInterface(self)
         self.cloudInterface = CloudDevInterface(self)
@@ -46,7 +44,7 @@ class MainWindow(FluentWindow):
 
     def connectSignalToSlot(self):
         signalBus.micaEnableChanged.connect(self.setMicaEffectEnabled)
-        signalBus.switchToSampleCard.connect(self.switchToSample)
+        # signalBus.switchToSampleCard.connect(self.switchToSample)
         signalBus.supportSignal.connect(self.onSupport)
 
     def initNavigation(self):
@@ -64,8 +62,6 @@ class MainWindow(FluentWindow):
             FIF.COMMAND_PROMPT,
             self.tr('Local Console'))
 
-        pos = NavigationItemPosition.SCROLL
-
         # add custom widget to bottom
         self.navigationInterface.addWidget(
             routeKey='avatar',
@@ -74,16 +70,18 @@ class MainWindow(FluentWindow):
             onClick=self.onSupport,  # TODO: login dialog
             position=NavigationItemPosition.BOTTOM
         )
+
+        # setting interface
         self.addSubInterface(
             self.settingInterface,
             FIF.SETTING,
             self.tr('Settings'),
             NavigationItemPosition.BOTTOM)
-        self.addSubInterface(
-            self.settingInterface,
-            FIF.SETTING,
-            self.tr('Settings'),
-            NavigationItemPosition.BOTTOM)
+        # self.addSubInterface(
+        #     self.settingInterface,
+        #     FIF.SETTING,
+        #     self.tr('Settings'),
+        #     NavigationItemPosition.BOTTOM)
 
     def initWindow(self):
         """
@@ -95,6 +93,7 @@ class MainWindow(FluentWindow):
         self.resize(w, h)
         self.setMinimumWidth(760)
 
+        # set window icon and title
         self.setWindowIcon(QIcon(':/gallery/images/logo.png'))
         self.setWindowTitle('PyQt-Fluent-Widgets')
 
@@ -105,6 +104,7 @@ class MainWindow(FluentWindow):
         self.splashScreen.setIconSize(QSize(106 * 2, 106 * 2))
         self.splashScreen.raise_()
 
+        # move window to center
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
         self.show()
         QApplication.processEvents()
@@ -125,10 +125,10 @@ class MainWindow(FluentWindow):
         if hasattr(self, 'splashScreen'):
             self.splashScreen.resize(self.size())
 
-    def switchToSample(self, routeKey, index):
-        """ switch to sample """
-        interfaces = self.findChildren(GalleryInterface)
-        for w in interfaces:
-            if w.objectName() == routeKey:
-                self.stackedWidget.setCurrentWidget(w, False)
-                w.scrollToCard(index)
+    # def switchToSample(self, routeKey, index):
+    #     """ switch to sample """
+    #     interfaces = self.findChildren(GalleryInterface)
+    #     for w in interfaces:
+    #         if w.objectName() == routeKey:
+    #             self.stackedWidget.setCurrentWidget(w, False)
+    #             w.scrollToCard(index)

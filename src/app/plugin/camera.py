@@ -78,7 +78,8 @@ class Camera:
         """
         release camera
         """
-        self.videoCapture.release()
+        if self.videoCapture.isOpened():
+            self.videoCapture.release()
 
     def __repr__(self):
         """
