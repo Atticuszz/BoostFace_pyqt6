@@ -2,7 +2,8 @@ from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 from qfluentwidgets import FluentIcon as FIF, TextEdit
 
-from src.app.model.view_model.local_dev_model import LocalDevModel, QLoggingHandler
+from src.app.config.logging_config import QLoggingHandler
+from src.app.model.view_model.local_dev_model import LocalDevModel
 from src.app.view.component.expand_info_card import ExpandInfoCard
 from src.app.view.component.system_monitor import SystemMonitor
 

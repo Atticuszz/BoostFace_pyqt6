@@ -1,31 +1,19 @@
 # coding=utf-8
-import time
 
-from PyQt6.QtCore import pyqtSignal, QThread
+from PyQt6.QtCore import pyqtSignal
 
-
-class ConsoleSimulator(QThread):
-    """
-    A console output simulator
-    Signal: newText
-    """
-    newText = pyqtSignal(str)
-
-    def run(self):
-        count = 0
-        while True:
-            time.sleep(1)  # 控制输出速度
-            count += 1
-            self.newText.emit(f"Line {count}: The current count is {count}\n")
+from src.app.common.client import WebSocketThread, client
+from src.types import Image
 
 
-class CloudServerModel:
+class CloudServerModel(WebSocketThread):
     """
     :var server_info: dict, server information
-    :var console_simulator: ConsoleSimulator, a console output simulator
     """
+    cloud_dev_data = pyqtSignal(str)  # Signal to emit new data
 
     def __init__(self):
+        super().__init__(ws_type="cloud_logging")
         self.server_info = {
             'domain': "www.digitalocean.com",
             'location': 'New York',
@@ -35,4 +23,9 @@ class CloudServerModel:
             'GPU': 'NVIDIA RTX 3080',
             'Storage': '1 TB',
         }
-        self.console_simulator = ConsoleSimulator()
+        client.login(email="zhouge1831@gmail.com", password="Zz030327#")
+
+    def working(self, data: dict | str | Image):
+        if not isinstance(data, str):
+            raise TypeError("data must be str")
+        self.cloud_dev_data.emit(data)

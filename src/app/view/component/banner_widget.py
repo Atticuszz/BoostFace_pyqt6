@@ -3,7 +3,7 @@ from PyQt6.QtGui import QPixmap, QPainter, QPainterPath, QLinearGradient, QColor
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from qfluentwidgets import isDarkTheme, FluentIcon
 
-from src.app.common.config import HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
+from src.app.config.config import HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
 from ..component.link_card import LinkCardView
 
 

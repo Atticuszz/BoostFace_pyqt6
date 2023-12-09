@@ -1,4 +1,4 @@
-from src.app.common.config import cfg, HELP_URL, YEAR, AUTHOR, VERSION, FEEDBACK_URL
+from src.app.config.config import cfg, HELP_URL, YEAR, AUTHOR, VERSION, FEEDBACK_URL
 
 
 class SettingModel:

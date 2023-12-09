@@ -4,7 +4,7 @@ from PyQt6.QtGui import QDesktopServices
 from qfluentwidgets import setTheme, setThemeColor
 
 from src.app.common import signalBus
-from src.app.common.config import cfg
+from src.app.config.config import cfg
 from src.app.model.view_model.setting_model import SettingModel
 from src.app.view.interface.setting_interface import SettingInterface
 

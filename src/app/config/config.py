@@ -1,7 +1,7 @@
 # coding:utf-8
-import sys
 from enum import Enum
 
+import sys
 from PyQt6.QtCore import QLocale
 from qfluentwidgets import (qconfig, QConfig, ConfigItem, OptionsConfigItem, BoolValidator,
                             OptionsValidator, RangeConfigItem, RangeValidator,

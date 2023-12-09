@@ -1,13 +1,12 @@
-import sys
-
 import psutil
 import pyqtgraph as pg
+import sys
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QLinearGradient, QColor, QPainter, QBrush
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout
 from qfluentwidgets import Theme
 
-from src.app.common.config import cfg
+from src.app.config.config import cfg
 
 
 class ResourceGraph(pg.PlotWidget):

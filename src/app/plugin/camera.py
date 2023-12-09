@@ -14,7 +14,7 @@ from .detector.common import Image, Image2Detect, Bbox, Color
 __all__ = ["AiCamera"]
 
 from .detector import Detector
-from ..common.config import cfg
+from src.app.config.config import cfg
 
 
 class CameraOpenError(Exception):

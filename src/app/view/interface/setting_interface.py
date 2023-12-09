@@ -14,7 +14,7 @@ from qfluentwidgets import (
     ExpandLayout,
     CustomColorSettingCard)
 
-from src.app.common.config import cfg, isWin11
+from src.app.config.config import cfg, isWin11
 from src.app.model.view_model.setting_model import SettingModel
 from src.app.view.style_sheet import StyleSheet
 

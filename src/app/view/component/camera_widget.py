@@ -7,7 +7,7 @@ from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import TogglePushButton
 from qfluentwidgets import isDarkTheme, FluentIcon
 
-from src.app.common.config import HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
+from src.app.config.config import HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
 from src.app.model.component_model.camera_model import CameraModel
 from src.app.view.component.link_card import LinkCardView
 

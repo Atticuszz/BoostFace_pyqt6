@@ -1,10 +1,8 @@
 # coding=utf-8
-import logging
-
 import time
 from PyQt6.QtCore import QThread
 
-from src.app.common import signalBus
+from src.app.config import qt_logger
 
 
 class ConsoleSimulator(QThread):
@@ -18,24 +16,7 @@ class ConsoleSimulator(QThread):
         while True:
             time.sleep(1)  # 控制输出速度
             count += 1
-            logging.info(f"Line {count}: The current count is {count}\n")
-
-
-class QLoggingHandler(logging.Handler):
-    def __init__(self):
-        super().__init__()
-        log_format = logging.Formatter(
-            "%(asctime)s - %(levelname)s - %(message)s")
-        self.setFormatter(log_format)
-        logger = logging.getLogger()
-        logger.addHandler(self)
-        logger.setLevel(logging.INFO)
-
-    def emit(self, record):
-        log_entry = self.format(record)
-        # auto send log message to the bus
-        signalBus.log_message.emit(log_entry)
-
+            qt_logger.info(f"Line {count}: The current count is {count}\n")
 
 class LocalDevModel:
     """
