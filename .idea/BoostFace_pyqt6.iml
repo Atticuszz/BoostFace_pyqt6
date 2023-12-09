@@ -8,6 +8,7 @@
     <orderEntry type="jdk" jdkName="Python 3.11 (BoostFace_pyqt6) (3)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="BoostFace_fastapi" />
+    <orderEntry type="module" module-name="supabase-py-async" />
   </component>
   <component name="PackageRequirementsSettings">
     <option name="removeUnused" value="true" />

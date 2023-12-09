@@ -1,5 +1,4 @@
 import sys
-
 from PyQt6.QtCore import Qt, QRectF
 from PyQt6.QtGui import QPixmap, QPainter, QPainterPath, QLinearGradient, QColor, QBrush
 from PyQt6.QtWidgets import QApplication
@@ -190,7 +189,7 @@ class CameraView(QWidget):
 
 if __name__ == '__main__':
     from src.app.controller.component_controller.camera_controller import CameraController
-    from src.app.model.component_model.result_widget_model import RsultWidgetModel
+    from src.app.model.component_model.result_widget_model import ResultWidgetModel
     from src.app.view.component.result_widget import ResultsWidget
     from src.app.controller.component_controller.result_widget_contoller import ResultsController
 
@@ -198,7 +197,7 @@ if __name__ == '__main__':
     model = CameraModel()
     view = CameraView(model)
     controller = CameraController(model, view)
-    model2 = RsultWidgetModel()
+    model2 = ResultWidgetModel()
     view2 = ResultsWidget(model2)
     controller2 = ResultsController(model2, view2)
     view.show()

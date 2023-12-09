@@ -1,8 +1,8 @@
-
 from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 from qfluentwidgets import FluentIcon as FIF, TextEdit
 
+from src.app.model.view_model.local_dev_model import LocalDevModel, QLoggingHandler
 from src.app.view.component.expand_info_card import ExpandInfoCard
 from src.app.view.component.system_monitor import SystemMonitor
 
@@ -62,9 +62,7 @@ class LocalDevInterface(QWidget):
         self.console_log = TextEdit()
         self.console_log.setReadOnly(True)
         self.a_layout.addWidget(self.console_log)
-        self.console_simulator = ConsoleSimulator(self)
-        self.console_simulator.newText.connect(self.append_text)
-        self.console_simulator.start()
+
 
     def append_text(self, text):
         """
@@ -76,3 +74,17 @@ class LocalDevInterface(QWidget):
         cursor.movePosition(QTextCursor.MoveOperation.End)
         cursor.insertText(text)
         self.console_log.setTextCursor(cursor)
+
+
+if __name__ == '__main__':
+    from PyQt6.QtWidgets import QApplication
+    import sys
+    from src.app.controller.view_controller.local_dev_controller import LocalDevController
+
+    app = QApplication(sys.argv)
+    view = LocalDevInterface()
+    model = LocalDevModel()
+    controller = LocalDevController(model, view)
+    logging_header_set_up = QLoggingHandler()
+    view.show()
+    sys.exit(app.exec())

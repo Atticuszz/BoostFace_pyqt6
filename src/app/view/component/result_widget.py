@@ -1,13 +1,13 @@
 # coding=utf-8
 # coding: utf-8
 import sys
-
 from PyQt6.QtCore import QModelIndex, Qt
 from PyQt6.QtGui import QPalette
 from PyQt6.QtWidgets import QApplication, QStyleOptionViewItem, QTableWidgetItem, QWidget, QHBoxLayout
 from qfluentwidgets import TableWidget, isDarkTheme, TableItemDelegate
 
-from src.app.model.component_model.result_widget_model import RsultWidgetModel
+from src.app.common import signalBus
+from src.app.model.component_model.result_widget_model import ResultWidgetModel
 
 
 class CustomTableItemDelegate(TableItemDelegate):
@@ -39,7 +39,7 @@ class CustomTableItemDelegate(TableItemDelegate):
 
 class ResultsWidget(QWidget):
 
-    def __init__(self, model: RsultWidgetModel | None = None, parent=None):
+    def __init__(self, model: ResultWidgetModel | None = None, parent=None):
         super().__init__(parent=parent)
         self.model = model
         # setTheme(Theme.DARK)
@@ -78,9 +78,12 @@ class ResultsWidget(QWidget):
         self.tableView.insertRow(row_position)
         for i, value in enumerate(data):
             self.tableView.setItem(row_position, i, QTableWidgetItem(value))
+        # auto resize columns
+        self.tableView.resizeColumnsToContents()
 
     def closeEvent(self, event):
         if self.model.isRunning():
+            signalBus.is_identify_running.emit(False)
             self.model.stop()
         super().closeEvent(event)
 
@@ -90,8 +93,9 @@ if __name__ == "__main__":
 
     # 示例窗口
     app = QApplication(sys.argv)
-    model = RsultWidgetModel()
+    model = ResultWidgetModel()
     demo = ResultsWidget(model)
+
     controller = ResultsController(model, demo)
     demo.show()
     sys.exit(app.exec())

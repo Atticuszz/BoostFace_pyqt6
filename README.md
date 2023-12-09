@@ -34,6 +34,17 @@
     5. cloud_dev_info_ui
 2. how to config?
 3. fastapi client?
-    1. login? ->✅
-    2. connect to cloud?
+    1. login?
+        1. ui✅
+        2. Model✅
+        3. Controller✅
+    2. socket
+        1. access record table
+            1. ui -home - access record table ✅
+            2. model - access record table ✅ socket in here
+            3. controller - access record table ✅
+        2. face image
+        3. connect to cloud dev log?
+4. local dev info
+    1. model -> global info logging ✅
 4. boostface integration local and connect to cloud?
