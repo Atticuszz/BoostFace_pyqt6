@@ -44,7 +44,8 @@
             2. model - access record table ✅ socket in here
             3. controller - access record table ✅
         2. face image
-        3. connect to cloud dev log?
+        3. connect to cloud dev log ✅
+        4. system monitor ✅
 4. local dev info
     1. model -> global info logging ✅
 4. boostface integration local and connect to cloud?
