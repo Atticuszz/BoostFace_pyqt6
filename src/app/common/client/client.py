@@ -7,7 +7,7 @@ import requests
 from cryptography.fernet import Fernet
 from time import time
 
-from src.app.plugin.decorator import error_handler
+from src.app.utils.decorator import error_handler
 
 
 class TokenEncryptor:
@@ -160,7 +160,7 @@ class AuthClient:
 
 
 client = AuthClient("http://127.0.0.1:5000")
-
+client.login(email="zhouge1831@gmail.com", password="Zz030327#")
 if __name__ == "__main__":
     # 使用示例
 

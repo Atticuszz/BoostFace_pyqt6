@@ -1,9 +1,8 @@
-import sys
 from typing import Union
 
+import sys
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QPalette, QIcon
-# 主窗口，用于展示 ExpandSettingCard
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel
 from PyQt6.QtWidgets import QGridLayout
 from qfluentwidgets import ExpandGroupSettingCard

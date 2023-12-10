@@ -1,40 +1,37 @@
 # coding=utf-8
 # coding: utf-8
 import sys
-from PyQt6.QtCore import QModelIndex, Qt
-from PyQt6.QtGui import QPalette
-from PyQt6.QtWidgets import QApplication, QStyleOptionViewItem, QTableWidgetItem, QWidget, QHBoxLayout
-from qfluentwidgets import TableWidget, isDarkTheme, TableItemDelegate
+from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QApplication, QTableWidgetItem, QWidget, QHBoxLayout
+from qfluentwidgets import TableWidget
 
 from src.app.common import signalBus
-from src.app.model.component_model.result_widget_model import ResultWidgetModel
+from src.app.common.client import WebSocketThread, client
+from src.app.types import Image
+from src.app.utils.decorator import error_handler
+
+__all__ = ['create_result_widget']
 
 
-class CustomTableItemDelegate(TableItemDelegate):
-    """ Custom table item delegate """
+class ResultWidgetModel(WebSocketThread):
+    """ Result widget model"""
+    newData = pyqtSignal(list)  # Signal to emit new data
+    running_signal = signalBus.is_identify_running
 
-    def initStyleOption(
-            self,
-            option: QStyleOptionViewItem,
-            index: QModelIndex):
-        super().initStyleOption(option, index)
-        if index.column() != 1:
-            return
+    def __init__(self):
+        super().__init__(ws_type="identify")
+        client.login(email="zhouge1831@gmail.com", password="Zz030327#")
+        self.headers = ['ID', 'Name', 'Time']
+        self.column_count = len(self.headers)
+        self._is_running = False
 
-        if isDarkTheme():
-            option.palette.setColor(
-                QPalette.ColorRole.Text,
-                Qt.GlobalColor.white)
-            option.palette.setColor(
-                QPalette.ColorRole.HighlightedText,
-                Qt.GlobalColor.white)
-        else:
-            option.palette.setColor(
-                QPalette.ColorRole.Text,
-                Qt.GlobalColor.red)
-            option.palette.setColor(
-                QPalette.ColorRole.HighlightedText,
-                Qt.GlobalColor.red)
+    @error_handler
+    def working(self, data: dict | str | Image):
+        """add your working in websocket"""
+        if not isinstance(data, dict):
+            raise TypeError("data must be dict")
+        new_data = [data["id"], data["name"], data["time"]]
+        self.newData.emit(new_data)
 
 
 class ResultsWidget(QWidget):
@@ -88,9 +85,27 @@ class ResultsWidget(QWidget):
         super().closeEvent(event)
 
 
-if __name__ == "__main__":
-    from src.app.controller.component_controller.result_widget_contoller import ResultsController
+class ResultsController:
+    def __init__(self, model: ResultWidgetModel, view: ResultsWidget):
+        self.model = model
+        self.view = view
+        self.model.newData.connect(self.view.addTableRow)
 
+        # receive signal from signalBus
+        signalBus.is_identify_running.connect(self.model.update_is_running)
+        self.model.start()
+
+
+def create_result_widget(parent=None) -> ResultsController:
+    """ create result widget"""
+    created_model = ResultWidgetModel()
+    created_view = ResultsWidget(created_model, parent=parent)
+    created_controller = ResultsController(created_model, created_view)
+
+    return created_controller
+
+
+if __name__ == "__main__":
     # 示例窗口
     app = QApplication(sys.argv)
     model = ResultWidgetModel()

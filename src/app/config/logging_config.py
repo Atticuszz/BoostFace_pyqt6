@@ -19,4 +19,4 @@ class QLoggingHandler(logging.Handler):
 
 qt_logging_handler = QLoggingHandler()
 logging.basicConfig(handlers=[qt_logging_handler], level=logging.INFO)
-qt_logger = logging.getLogger(__name__)
+qt_logger = logging.getLogger()

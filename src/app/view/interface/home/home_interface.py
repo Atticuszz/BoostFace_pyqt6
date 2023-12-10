@@ -1,8 +1,12 @@
 # coding:utf-8
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 
-from src.app.model.component_model.camera_model import CameraModel
-from src.app.view.component.camera_widget import CameraWidget, StateWidget
+from src.app.view.interface.home.camera_widget import (
+    create_camera_widget,
+    create_state_widget)
+from src.app.view.interface.home.result_widget import create_result_widget
+
+__all__ = ['HomeInterface']
 
 
 class HomeInterface(QWidget):
@@ -36,11 +40,12 @@ class HomeInterface(QWidget):
 
     def _init_left_widgets(self):
         """
-        init left widgets
+        init left widgets camera and state
         """
-        # 创建相应的widget实例并添加到布局中
-        self.camera_widget = CameraWidget()
-        self.state_widget = StateWidget()
+        self.camera_widget_C = create_camera_widget(self)
+        self.camera_widget = self.camera_widget_C.view
+        self.state_widget_C = create_state_widget(self)
+        self.state_widget = self.state_widget_C.view
 
         self.left_A_layout.addWidget(self.state_widget)
         self.left_B_layout.addWidget(self.camera_widget)
@@ -49,24 +54,10 @@ class HomeInterface(QWidget):
         """
         init right widgets
         """
-        self.result_widget = ResultsWidget()
+        self.result_widget_C = create_result_widget(self)
+        self.result_widget = self.result_widget_C.view
         self.right_layout.addWidget(self.result_widget)
 
 
 if __name__ == '__main__':
-    import sys
-    from PyQt6.QtWidgets import QApplication
-    from src.app.controller.component_controller.camera_controller import CameraController
-    from src.app.model.component_model.result_widget_model import ResultWidgetModel
-    from src.app.view.component.result_widget import ResultsWidget
-    from src.app.controller.component_controller.result_widget_contoller import ResultsController
-
-    app = QApplication(sys.argv)
-    model = CameraModel()
-    view = CameraWidget(model=model)
-    controller = CameraController(model, view)
-    model2 = ResultWidgetModel()
-    view2 = ResultsWidget(model2)
-    controller2 = ResultsController(model2, view2)
-    HomeInterface().show()
-    sys.exit(app.exec())
+    pass

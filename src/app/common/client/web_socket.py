@@ -7,13 +7,15 @@ import numpy as np
 import websockets
 from PyQt6.QtCore import pyqtSlot, QThread, pyqtSignal
 
-from src.types import Image
+from src.app.types import Image
 from .client import client
-from ...plugin.decorator import error_handler
+from ...utils.decorator import error_handler
 
 
 class WebSocketThread(QThread):
-    """Websocket thread"""
+    """Websocket thread
+    :var ws_type: str, websocket type
+    """
     running_signal = pyqtSignal(bool)
 
     def __init__(self, ws_type: str | None = None):

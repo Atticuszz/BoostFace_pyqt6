@@ -1,15 +1,17 @@
-import sys
-from PyQt6.QtCore import Qt, QRectF
-from PyQt6.QtGui import QPixmap, QPainter, QPainterPath, QLinearGradient, QColor, QBrush
-from PyQt6.QtWidgets import QApplication
+import cv2
+from PyQt6.QtCore import Qt, QRectF, QThread, pyqtSignal
+from PyQt6.QtGui import QPixmap, QPainter, QPainterPath, QLinearGradient, QColor, QBrush, QImage
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import TogglePushButton
 from qfluentwidgets import isDarkTheme, FluentIcon
 
 from src.app.config.config import HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
-from src.app.model.component_model.camera_model import CameraModel
+from src.app.utils.camera import AiCamera, CameraOpenError
+from src.app.utils.detector.common import Image2Detect
 from src.app.view.component.link_card import LinkCardView
+
+__all__ = ['create_camera_widget', 'create_state_widget']
 
 
 class VideoStreamWidget(QWidget):
@@ -37,6 +39,49 @@ class VideoStreamWidget(QWidget):
         self.image_label.setPixmap(self.default_pixmap)
 
 
+class CameraModel(QThread):
+    """ Camera model """
+    change_pixmap_signal = pyqtSignal(QImage)
+
+    def __init__(self):
+        super().__init__()
+        self.capture = None
+        self._is_running = False
+
+    def run(self):
+        self.capture = AiCamera()
+        while self._is_running:
+            try:
+                frame = self.capture.read()
+            except CameraOpenError:
+                print("camera open error or camera has released")
+                break
+            assert isinstance(frame, Image2Detect), "frame is not Image2Detect"
+            rgb_image = cv2.cvtColor(frame.nd_arr, cv2.COLOR_BGR2RGB)
+            h, w, ch = rgb_image.shape
+            bytes_per_line = ch * w
+            convert_to_Qt_format = QImage(
+                rgb_image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
+            self.change_pixmap_signal.emit(convert_to_Qt_format)
+
+    def start_capture(self):
+        # 启动摄像头和视频线程
+        if not self.isRunning():
+            self._is_running = True
+            self.start()
+
+    def stop_capture(self):
+        # 停止摄像头和视频线程
+        if self.isRunning():
+            self._is_running = False
+            self.wait()
+
+    def stop(self):
+        self._is_running = False
+        self.wait()
+        self.capture.release()
+
+
 class CameraWidget(VideoStreamWidget):
     """
     camera_card
@@ -46,7 +91,7 @@ class CameraWidget(VideoStreamWidget):
     add control components on video stream widget
     """
 
-    def __init__(self, parent=None, model: CameraModel | None = None, ):
+    def __init__(self, model: CameraModel | None = None, parent=None):
         super().__init__(parent=parent)
         self.model = model
         self.layout = QVBoxLayout(self)
@@ -166,39 +211,50 @@ class StateWidget(QWidget):
         painter.fillPath(path, QBrush(pixmap))
 
 
-class CameraView(QWidget):
-    """
-    state_widget
-    camera_card
-    """
+class StateWidgetC:
+    def __init__(self, view: StateWidget):
+        self.view = view
 
-    def __init__(self, model: CameraModel, parent=None):
-        super().__init__(parent=parent)
+
+class CameraWidgetC:
+    def __init__(self, model: CameraModel, view: CameraWidget):
         self.model = model
-        self.vBoxLayout = QVBoxLayout(self)
-        self.stateWidget = StateWidget(self)
-        self.cameraCard = CameraWidget(self)
-        self.vBoxLayout.addWidget(self.stateWidget)
-        self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.vBoxLayout.addWidget(self.cameraCard)
+        self.view = view
 
-    def closeEvent(self, event) -> None:
-        self.model.stop()
-        super().closeEvent(event)
+        # update image
+        self.model.change_pixmap_signal.connect(
+            self.view.update_image)
+        # toggle camera
+        self.view.toggle_switch.clicked.connect(self.toggle_camera)
+        # bind close event
+
+    def toggle_camera(self):
+        """
+        toggle camera action
+        """
+        if self.model.isRunning():
+            self.model.stop_capture()
+        else:
+            self.model.start_capture()
+            self.view.reset_image()
+
+
+def create_camera_widget(parent=None) -> CameraWidgetC:
+    """ create camera widget"""
+    created_model = CameraModel()
+    created_view = CameraWidget(created_model, parent=parent)
+    created_controller = CameraWidgetC(created_model, created_view)
+
+    return created_controller
+
+
+def create_state_widget(parent=None) -> StateWidgetC:
+    """ create state widget"""
+    created_view = StateWidget(parent=parent)
+    created_controller = StateWidgetC(created_view)
+
+    return created_controller
 
 
 if __name__ == '__main__':
-    from src.app.controller.component_controller.camera_controller import CameraController
-    from src.app.model.component_model.result_widget_model import ResultWidgetModel
-    from src.app.view.component.result_widget import ResultsWidget
-    from src.app.controller.component_controller.result_widget_contoller import ResultsController
-
-    app = QApplication(sys.argv)
-    model = CameraModel()
-    view = CameraView(model)
-    controller = CameraController(model, view)
-    model2 = ResultWidgetModel()
-    view2 = ResultsWidget(model2)
-    controller2 = ResultsController(model2, view2)
-    view.show()
-    sys.exit(app.exec())
+    pass

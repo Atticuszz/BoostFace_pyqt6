@@ -1,7 +1,8 @@
 # coding:utf-8
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import QWidget, QLabel
-from qfluentwidgets import FluentIcon as FIF
+from qfluentwidgets import FluentIcon as FIF, setTheme, setThemeColor
 from qfluentwidgets import InfoBar
 from qfluentwidgets import (
     SettingCardGroup,
@@ -14,9 +15,61 @@ from qfluentwidgets import (
     ExpandLayout,
     CustomColorSettingCard)
 
-from src.app.config.config import cfg, isWin11
-from src.app.model.view_model.setting_model import SettingModel
+from src.app.common import signalBus
+from src.app.config.config import cfg, isWin11, HELP_URL, FEEDBACK_URL, YEAR, AUTHOR, VERSION
 from src.app.view.style_sheet import StyleSheet
+
+__all__ = ['create_setting_interface']
+
+
+class SettingModel:
+    """
+     Setting model
+     """
+
+    def __init__(self):
+        # Camera settings
+        self.camera_fps = cfg.cameraFps
+        self.camera_fps_options_texts = [
+            '10', '15', '20', '25', '30'
+        ]
+
+        self.camera_device = cfg.cameraDevice
+        self.camera_device_options_texts = [
+            'laptop camera', 'external camera'
+        ]
+
+        self.camera_resolution = cfg.cameraResolution
+        self.camera_resolution_options_texts = [
+            '1920x1080', '1280x720'
+        ]
+
+        # theme
+        self.theme_mode = cfg.themeMode
+        self.theme_color = cfg.themeColor
+
+        # dpi
+        self.dpi_scale = cfg.dpiScale
+
+        # language
+        self.language = cfg.language
+
+        # update
+        self.check_update = cfg.checkUpdateAtStartUp
+
+        # application
+        self.help_url = HELP_URL
+        self.feedback_url = FEEDBACK_URL
+        self.year = YEAR
+        self.author = AUTHOR
+        self.version = VERSION
+
+    def updateCameraFps(self, fps):
+        self.cameraFps = fps
+        # 这里可以添加验证、转换等逻辑
+
+    def updateCameraDevice(self, device):
+        self.cameraDevice = device
 
 
 class SettingInterface(ScrollArea):
@@ -143,10 +196,13 @@ class SettingInterface(ScrollArea):
             self.tr('Check update'),
             FIF.INFO,
             self.tr('About'),
-            '© ' + self.tr('Copyright') + f" {self.model.year}, {self.model.author}. " +
-            self.tr('Version') + " " + self.model.version,
-            self.aboutGroup
-        )
+            '© ' +
+            self.tr('Copyright') +
+            f" {self.model.year}, {self.model.author}. " +
+            self.tr('Version') +
+            " " +
+            self.model.version,
+            self.aboutGroup)
 
         self.__initWidget()
 
@@ -206,3 +262,73 @@ class SettingInterface(ScrollArea):
             duration=1500,
             parent=self
         )
+
+
+class SettingInterfaceC:
+    """ Setting interface controller"""
+
+    def __init__(self, model: SettingModel, view: SettingInterface):
+        self.model = model
+        self.view = view
+
+        self._init_camera_connect()
+        self._init_personalization_connect()
+        self._init_application_connect()
+
+    def _init_camera_connect(self):
+        """
+        inti camera connect
+        """
+        self.view.cameraFpsCard.optionChanged.connect(self._update_camera_fps)
+        self.view.cameraDeviceCard.optionChanged.connect(
+            self._update_camera_device)
+        self.view.cameraResolutionCard.optionChanged.connect(
+            self._update_camera_resolution)
+
+    def _init_personalization_connect(self):
+        """
+        init personalization connect
+        """
+        self.view.themeCard.optionChanged.connect(
+            lambda ci: setTheme(cfg.get(ci)))
+        self.view.themeColorCard.colorChanged.connect(setThemeColor)
+
+        self.view.micaCard.checkedChanged.connect(signalBus.micaEnableChanged)
+        # self.view.zoomCard.optionChanged.connect(self.updateZoom)
+        # self.view.languageCard.optionChanged.connect(self.updateLanguage)
+
+    def _init_application_connect(self):
+        """
+        init application connect
+        """
+        self.view.updateOnStartUpCard.checkedChanged.connect(
+            self._update_on_start_up)
+        # about
+        self.view.feedbackCard.clicked.connect(
+            lambda: QDesktopServices.openUrl(QUrl(self.model.feedback_url)))
+
+    def _update_camera_fps(self, fps: str):
+        self.model.camera_fps = fps
+
+    def _update_camera_device(self, device: str):
+        self.model.camera_device = device
+
+    def _update_camera_resolution(self, resolution: str):
+        self.model.camera_resolution = resolution
+
+    def _update_on_start_up(self):
+        cfg.appRestartSig.connect(self.view._showRestartTooltip)
+
+
+# TODO:separate the interface to several parts,Interface should be a class that only contains the layout and widgets
+def create_setting_interface(parent=None) -> SettingInterfaceC:
+    """
+    create setting interface
+    :param parent:
+    :return:
+    """
+    created_model = SettingModel()
+    created_view = SettingInterface(created_model, parent=parent)
+    created_controller = SettingInterfaceC(created_model, created_view)
+
+    return created_controller

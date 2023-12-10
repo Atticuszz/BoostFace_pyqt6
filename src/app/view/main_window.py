@@ -13,10 +13,10 @@ from qfluentwidgets import (
 from src.app.common.signal_bus import signalBus
 from src.app.common.translator import Translator
 from src.app.config.config import SUPPORT_URL, cfg
-from src.app.view.interface.cloud_dev_interface import CloudDevInterface
-from src.app.view.interface.home_interface import HomeInterface
-from src.app.view.interface.local_dev_interface import LocalDevInterface
-from src.app.view.interface.setting_interface import SettingInterface
+from src.app.view.interface.cloud_dev.cloud_dev_interface import CloudDevInterface
+from src.app.view.interface.home.home_interface import HomeInterface
+from src.app.view.interface.local_dev.local_dev_interface import LocalDevInterface
+from src.app.view.interface.setting.setting_interface import SettingInterface
 
 
 class MainWindow(FluentWindow):
