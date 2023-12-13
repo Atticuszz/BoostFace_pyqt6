@@ -6,8 +6,6 @@ from src.app.view.interface.home.camera_widget import (
     create_state_widget)
 from src.app.view.interface.home.result_widget import create_result_widget
 
-__all__ = ['HomeInterface']
-
 
 class HomeInterface(QWidget):
     """ Home interface """
@@ -60,4 +58,9 @@ class HomeInterface(QWidget):
 
 
 if __name__ == '__main__':
-    pass
+    from PyQt6.QtWidgets import QApplication
+
+    app = QApplication([])
+    home = HomeInterface()
+    home.show()
+    app.exec()

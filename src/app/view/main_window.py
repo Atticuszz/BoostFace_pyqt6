@@ -1,22 +1,22 @@
 # coding: utf-8
-from PyQt6.QtCore import QUrl, QSize
-from PyQt6.QtGui import QIcon, QDesktopServices
+from PyQt6.QtCore import QSize
+from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import (
     NavigationAvatarWidget,
     NavigationItemPosition,
-    MessageBox,
     FluentWindow,
     SplashScreen)
-from src.app.view.interface.cloud_dev.cloud_dev_interface import CloudDevInterface
 
 from src.app.common.signal_bus import signalBus
 from src.app.common.translator import Translator
-from src.app.config.config import SUPPORT_URL, cfg
+from src.app.config.config import cfg
+from src.app.view.interface import CloudMonitorInterface
 from src.app.view.interface.home.home_interface import HomeInterface
 from src.app.view.interface.local_monitor.local_monitor_interface import LocalMonitorInterface
 from src.app.view.interface.setting.setting_interface import SettingInterface
+from .component.auth_dialog import create_login_dialog
 
 
 class MainWindow(FluentWindow):
@@ -24,14 +24,13 @@ class MainWindow(FluentWindow):
     def __init__(self):
         super().__init__()
 
-        self.splashScreen = None
         self.initWindow()
 
         # create sub interface
         self.homeInterface = HomeInterface(self)
         self.local_console_interface = LocalMonitorInterface(self)
         self.settingInterface = SettingInterface(self)
-        self.cloudInterface = CloudDevInterface(self)
+        self.cloudInterface = CloudMonitorInterface(self)
 
         # enable acrylic effect
         self.navigationInterface.setAcrylicEnabled(True)
@@ -45,7 +44,7 @@ class MainWindow(FluentWindow):
     def connectSignalToSlot(self):
         signalBus.micaEnableChanged.connect(self.setMicaEffectEnabled)
         # signalBus.switchToSampleCard.connect(self.switchToSample)
-        signalBus.supportSignal.connect(self.onSupport)
+        # signalBus.supportSignal.connect(self.onSupport)
 
     def initNavigation(self):
         # add navigation items
@@ -62,12 +61,13 @@ class MainWindow(FluentWindow):
             FIF.COMMAND_PROMPT,
             self.tr('Local Console'))
 
-        # add custom widget to bottom
+        # add login widget to bottom
+
         self.navigationInterface.addWidget(
             routeKey='avatar',
             widget=NavigationAvatarWidget(
                 'zhiyiYo', ':/gallery/images/shoko.png'),
-            onClick=self.onSupport,  # TODO: login dialog
+            onClick=self.login,  # TODO: bug here click ,failed program
             position=NavigationItemPosition.BOTTOM
         )
 
@@ -77,11 +77,6 @@ class MainWindow(FluentWindow):
             FIF.SETTING,
             self.tr('Settings'),
             NavigationItemPosition.BOTTOM)
-        # self.addSubInterface(
-        #     self.settingInterface,
-        #     FIF.SETTING,
-        #     self.tr('Settings'),
-        #     NavigationItemPosition.BOTTOM)
 
     def initWindow(self):
         """
@@ -109,16 +104,9 @@ class MainWindow(FluentWindow):
         self.show()
         QApplication.processEvents()
 
-    def onSupport(self):
-        w = MessageBox(
-            '支持作者🥰',
-            '个人开发不易，如果这个项目帮助到了您，可以考虑请作者喝一瓶快乐水🥤。您的支持就是作者开发和维护项目的动力🚀',
-            self
-        )
-        w.yesButton.setText('来啦老弟')
-        w.cancelButton.setText('下次一定')
-        if w.exec():
-            QDesktopServices.openUrl(QUrl(SUPPORT_URL))
+    def login(self):
+        self.login_dialog_c = create_login_dialog(self)
+        self.login_dialog = self.login_dialog_c.view
 
     def resizeEvent(self, e):
         super().resizeEvent(e)

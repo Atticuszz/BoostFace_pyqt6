@@ -78,8 +78,9 @@ class CameraModel(QThread):
 
     def stop(self):
         self._is_running = False
-        self.wait()
         self.capture.release()
+        self.wait()
+
 
 
 class CameraWidget(VideoStreamWidget):
@@ -106,10 +107,12 @@ class CameraWidget(VideoStreamWidget):
         # self.setLayout(self.layout)
 
     def closeEvent(self, event) -> None:
-        self.model.stop()
+        if self.model.isRunning():
+            self.model.stop()
         super().closeEvent(event)
 
 
+# TODO: change to true camera state
 class StateWidget(QWidget):
     """
     state_card
@@ -235,6 +238,7 @@ class CameraWidgetC:
         if self.model.isRunning():
             self.model.stop_capture()
         else:
+            # TODO: bug here ，toggle to failed program
             self.model.start_capture()
             self.view.reset_image()
 

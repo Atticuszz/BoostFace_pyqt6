@@ -1,4 +1,3 @@
-# coding=utf-8
 # coding: utf-8
 import sys
 from PyQt6.QtCore import pyqtSignal
@@ -6,7 +5,7 @@ from PyQt6.QtWidgets import QApplication, QTableWidgetItem, QWidget, QHBoxLayout
 from qfluentwidgets import TableWidget
 
 from src.app.common import signalBus
-from src.app.common.client import WebSocketThread, client
+from src.app.common.client import WebSocketThread
 from src.app.types import Image
 from src.app.utils.decorator import error_handler
 
@@ -20,7 +19,6 @@ class ResultWidgetModel(WebSocketThread):
 
     def __init__(self):
         super().__init__(ws_type="identify")
-        client.login(email="zhouge1831@gmail.com", password="Zz030327#")
         self.headers = ['ID', 'Name', 'Time']
         self.column_count = len(self.headers)
         self._is_running = False
@@ -39,6 +37,7 @@ class ResultsWidget(QWidget):
     def __init__(self, model: ResultWidgetModel | None = None, parent=None):
         super().__init__(parent=parent)
         self.model = model
+        self.close_event = None
         # setTheme(Theme.DARK)
 
         # NOTE: use custom item delegate
@@ -81,7 +80,7 @@ class ResultsWidget(QWidget):
     def closeEvent(self, event):
         if self.model.isRunning():
             signalBus.is_identify_running.emit(False)
-            self.model.stop()
+            self.close_event()
         super().closeEvent(event)
 
 
@@ -90,7 +89,7 @@ class ResultsController:
         self.model = model
         self.view = view
         self.model.newData.connect(self.view.addTableRow)
-
+        self.view.close_event = self.model.stop
         # receive signal from signalBus
         signalBus.is_identify_running.connect(self.model.update_is_running)
         self.model.start()

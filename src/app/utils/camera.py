@@ -160,6 +160,7 @@ class AiCamera(Camera):
         """
         frame = super().read()
         img2detect = Image2Detect(frame, [])
+        # TODO: upgrade to boost-face
         img2detect = self._detector.run_onnx(img2detect)
         for face in img2detect.faces:
             self._draw_bbox(img2detect.nd_arr, face.bbox)

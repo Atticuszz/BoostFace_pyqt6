@@ -1,9 +1,9 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 from qfluentwidgets import FluentIcon as FIF
 
-from src.app.view.component.expand_info_card import ExpandInfoCard
-from src.app.view.interface.cloud_monitor.cloud_log_widget import create_cloud_log
-from src.app.view.interface.cloud_monitor.cloud_sm_widget import create_cloud_system_monitor
+from .cloud_log_widget import create_cloud_log
+from .cloud_sm_widget import create_cloud_system_monitor
+from ...component.expand_info_card import ExpandInfoCard
 
 
 class CloudMonitorInterface(QWidget):
@@ -68,3 +68,12 @@ class CloudMonitorInterface(QWidget):
         # A区域：控制台日志输出
         self.console_log_c = create_cloud_log(parent=self)
         self.console_log = self.console_log_c.view
+
+
+if __name__ == '__main__':
+    from PyQt6.QtWidgets import QApplication
+
+    app = QApplication([])
+    win = CloudMonitorInterface()
+    win.show()
+    app.exec()

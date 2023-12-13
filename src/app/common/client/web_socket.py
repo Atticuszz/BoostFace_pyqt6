@@ -9,6 +9,7 @@ from PyQt6.QtCore import pyqtSlot, QThread, pyqtSignal
 
 from src.app.types import Image
 from .client import client
+from ...config import qt_logger
 from ...utils.decorator import error_handler
 
 
@@ -49,8 +50,11 @@ class WebSocketThread(QThread):
         uri = f"{client.base_ws_url}/identify/{self.ws_type}/ws/{client_id}"
         async with websockets.connect(uri, extra_headers=client._auth_header()) as websocket:
             while self._is_running:
-                decoded_data: dict | str | Image = await self._load_ws_data(
-                    websocket)
+                try:
+                    decoded_data: dict | str | Image = await self._load_ws_data(websocket)
+                except websockets.exceptions.ConnectionClosedError:
+                    qt_logger.info(f'Connection closed: {uri}')
+                    break
 
                 self.working(decoded_data)
 
@@ -67,8 +71,12 @@ class WebSocketThread(QThread):
     @staticmethod
     async def _load_ws_data(
             websocket: websockets.WebSocketClientProtocol) -> dict | str | Image:
-        """ load websocket data"""
+        """ load websocket data
+        :exception  websockets.exceptions.ConnectionClosedError
+        """
+
         recv_date: str | bytes | Image = await websocket.recv()
+
         if isinstance(recv_date, bytes):
             # image
             nd_arr = np.frombuffer(recv_date, np.uint8)
