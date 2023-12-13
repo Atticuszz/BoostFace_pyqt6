@@ -5,10 +5,10 @@ from src.app.common.client import WebSocketThread
 from src.app.types import Image
 from src.app.view.component.system_monitor import SystemMonitor
 
-__all__ = ['create_remote_system_monitor']
+__all__ = ['create_cloud_system_monitor']
 
 
-class RemoteSystemStats(WebSocketThread):
+class CloudSystemStats(WebSocketThread):
     """
     Remote system stats
     """
@@ -29,10 +29,10 @@ class RemoteSystemStats(WebSocketThread):
         self.net_throughput = float(data['net_throughput'])
 
 
-class RemoteSystemMonitorC:
+class CloudSystemMonitorC:
     """ Controller for remote system monitor"""
 
-    def __init__(self, view: SystemMonitor, model: RemoteSystemStats):
+    def __init__(self, view: SystemMonitor, model: CloudSystemStats):
         self.view = view
         self.model = model
         self.timer = QTimer()
@@ -48,10 +48,10 @@ class RemoteSystemMonitorC:
         self.view.update_stats(cpu_percent, ram_percent, net_throughput)
 
 
-def create_remote_system_monitor(parent=None) -> RemoteSystemMonitorC:
+def create_cloud_system_monitor(parent=None) -> CloudSystemMonitorC:
     """create remote system monitor"""
-    created_model = RemoteSystemStats()
+    created_model = CloudSystemStats()
     created_view = SystemMonitor(parent=parent)
-    created_controller = RemoteSystemMonitorC(created_view, created_model)
+    created_controller = CloudSystemMonitorC(created_view, created_model)
 
     return created_controller
