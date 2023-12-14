@@ -6,14 +6,13 @@ from qfluentwidgets import TableWidget
 
 from src.app.common import signalBus
 from src.app.common.client import WebSocketThread
-from src.app.types import Image
 from src.app.utils.decorator import error_handler
 
 __all__ = ['create_result_widget']
 
 
-class ResultWidgetModel(WebSocketThread):
-    """ Result widget model"""
+class TestWidgetModel(WebSocketThread):
+    """test Result widget model"""
     newData = pyqtSignal(list)  # Signal to emit new data
     running_signal = signalBus.is_identify_running
 
@@ -21,15 +20,23 @@ class ResultWidgetModel(WebSocketThread):
         super().__init__(ws_type="identify")
         self.headers = ['ID', 'Name', 'Time']
         self.column_count = len(self.headers)
-        self._is_running = False
 
     @error_handler
-    def working(self, data: dict | str | Image):
+    def receive(self, data: dict | str):
         """add your working in websocket"""
         if not isinstance(data, dict):
             raise TypeError("data must be dict")
         new_data = [data["id"], data["name"], data["time"]]
         self.newData.emit(new_data)
+
+
+class ResultWidgetModel(WebSocketThread):
+    """ Result widget model"""
+
+    def __init__(self):
+        super().__init__(ws_type="identify")
+        self.headers = ['ID', 'Name', 'Time']
+        self.column_count = len(self.headers)
 
 
 class ResultsWidget(QWidget):
@@ -88,11 +95,8 @@ class ResultsController:
     def __init__(self, model: ResultWidgetModel, view: ResultsWidget):
         self.model = model
         self.view = view
-        self.model.newData.connect(self.view.addTableRow)
-        self.view.close_event = self.model.stop
-        # receive signal from signalBus
-        signalBus.is_identify_running.connect(self.model.update_is_running)
-        self.model.start()
+        # connect to results
+        signalBus.identify_results.connect(self.view.addTableRow)
 
 
 def create_result_widget(parent=None) -> ResultsController:

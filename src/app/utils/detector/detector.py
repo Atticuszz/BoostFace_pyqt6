@@ -22,7 +22,7 @@ class Detector:
         """
         run onnx model
         :param img2detect:
-        :return: img2detect with faces
+        :return: Image2Detect with faces
         """
         detect_params = {'max_num': 0, 'metric': 'default'}
         bboxes, kpss = self.detector_model.detect(img2detect.nd_arr, **detect_params)

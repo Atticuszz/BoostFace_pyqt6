@@ -7,7 +7,7 @@ import numpy as np
 import websockets
 from PyQt6.QtCore import pyqtSlot, QThread, pyqtSignal
 
-from src.app.types import Image
+from src.app.types import Image, Face2Search
 from .client import client
 from ...config import qt_logger
 from ...utils.decorator import error_handler
@@ -23,10 +23,18 @@ class WebSocketThread(QThread):
         super().__init__()
         self._is_running = False
         self.ws_type: str | None = ws_type
+        self.sender_queue = asyncio.Queue()
 
-    def working(self, data: dict | str | Image):
-        """add your working in websocket"""
-        pass
+    def send(self, data: Face2Search | dict | str):
+        """send data to websocket"""
+        try:
+            self.sender_queue.put_nowait(data)
+        except asyncio.QueueFull:
+            qt_logger.warning("message queue is full")
+
+    def receive(self, data: dict | str):
+        """receive data from websocket"""
+        raise NotImplementedError
 
     def run(self):
         """ run websocket"""
@@ -51,19 +59,20 @@ class WebSocketThread(QThread):
         async with websockets.connect(uri, extra_headers=client._auth_header()) as websocket:
             while self._is_running:
                 try:
+                    await self._send_ws_data(websocket)
                     decoded_data: dict | str | Image = await self._load_ws_data(websocket)
                 except websockets.exceptions.ConnectionClosedError:
                     qt_logger.info(f'Connection closed: {uri}')
                     break
 
-                self.working(decoded_data)
+                self.receive(decoded_data)
 
     @pyqtSlot(bool)
     def update_is_running(self, state: bool):
         """ update is_running"""
         self._is_running = state
 
-    def stop(self):
+    def stop_ws(self):
         """for closeEvent"""
         self._is_running = False
         self.wait()
@@ -89,3 +98,18 @@ class WebSocketThread(QThread):
             except json.JSONDecodeError:
                 # pure utf-8 string
                 return recv_date + '\n'
+
+    async def _send_ws_data(self, websocket: websockets.WebSocketClientProtocol):
+        """ send websocket Image data
+        :exception  websockets.exceptions.ConnectionClosedError
+        """
+        data = await self.sender_queue.get()
+        if not data:
+            return
+        if isinstance(data, Face2Search):
+            await websocket.send(data.to_schema().model_dump_json())
+        else:
+            try:
+                data = json.dumps(data)
+            except json.JSONDecodeError:
+                await websocket.send(data)

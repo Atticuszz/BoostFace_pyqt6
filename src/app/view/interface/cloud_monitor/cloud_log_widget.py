@@ -2,7 +2,6 @@
 from PyQt6.QtCore import pyqtSignal
 
 from src.app.common.client import WebSocketThread
-from src.app.types import Image
 from src.app.view.component.console_log_widget import ConsoleLogWidget
 
 __all__ = ['create_cloud_log']
@@ -17,7 +16,7 @@ class CloudLogM(WebSocketThread):
     def __init__(self):
         super().__init__(ws_type="cloud_logging")
 
-    def working(self, data: dict | str | Image):
+    def receive(self, data: dict | str):
         if not isinstance(data, str):
             raise TypeError("data must be str")
         self.cloud_log_data.emit(data)
@@ -32,7 +31,7 @@ class CloudLogC:
         self.model = model
         self.view = view
         self.model.cloud_log_data.connect(self.view.append_text)
-        self.view.close_event = self.model.stop
+        self.view.close_event = self.model.stop_ws
         self.model.start()
 
 

@@ -1,0 +1,197 @@
+import queue
+from typing import Any
+
+import numpy as np
+from PyQt6.QtCore import QThread, pyqtSlot
+
+from src.app.common import signalBus
+from src.app.config import qt_logger
+from src.app.types import Image, Bbox, Kps, Color, Embedding, MatchInfo, Face2Search
+
+
+class Face:
+    """face"""
+
+    def __init__(
+            self,
+            bbox: Bbox,
+            kps: Kps,
+            det_score: float,
+            scene_scale: tuple[int, int, int, int],
+            face_id: int = 0,
+            color: Color = (50, 205, 255),
+    ):
+        """
+        init a face
+        :param bbox:shape [4,2]
+        :param kps: shape [5,2]
+        :param det_score:
+        :param color:
+        :param scene_scale: (x1,y1,x2,y2) of scense image
+        :param match_info: MatchInfo(uid,score)
+        """
+        self.bbox: Bbox = bbox
+        self.kps: Kps = kps
+        self.det_score: float = det_score
+        self.scene_scale: tuple[int, int, int, int] = scene_scale
+        # 默认是橙色
+        self.bbox_color: Color = color
+        self.embedding: Embedding = np.zeros(512)
+        self.id: int = face_id  # target id
+        self.match_info: MatchInfo = MatchInfo(uid='', score=0.0)
+
+    def face_image(self, scene: Image) -> Face2Search:
+        """
+        get face image from scense
+        :param scene:
+        :return:
+        """
+        # 确保 bbox 中的值是整数
+        x1, y1, x2, y2 = map(
+            int, [self.bbox[0], self.bbox[1], self.bbox[2], self.bbox[3]])
+
+        # 避免超出图像边界
+        x1 = max(0, x1)
+        y1 = max(0, y1)
+        x2 = min(scene.shape[1], x2)  # scene.shape[1] 是图像的宽度
+        y2 = min(scene.shape[0], y2)  # scene.shape[0] 是图像的高度
+
+        # 裁剪人脸图像
+        face_img = scene[y1:y2, x1:x2]
+        bbox = np.array([0, 0, face_img.shape[1], face_img.shape[0]])
+
+        # 调整关键点位置
+        kps = self.kps - np.array([x1, y1])
+
+        return Face2Search(face_img, bbox, kps, self.det_score)
+
+
+class Image2Detect:
+    """
+    image to detect
+    :param image: image
+    :param faces: [face, face, ...]
+    """
+
+    def __init__(self, image: Image, faces: list[Face]):
+        self.nd_arr: Image = image
+        self.faces: list[Face] = faces
+
+    @property
+    def scale(self) -> tuple[int, int, int, int]:
+        """
+        :return: (x1, y1, x2, y2)
+        """
+        return 0, 0, self.nd_arr.shape[1], self.nd_arr.shape[0]
+
+
+class ClosableQueue(queue.Queue):
+    """
+    A Queue that can be closed. This queue allows items to be added and removed, but
+    can be closed when no more items are expected. When closed, the iterator stops yielding
+    new items after draining existing items in the queue.
+
+    :param task_name: Name of the task associated with the queue.
+    :param maxsize: Maximum size of the queue. Defaults to 100.
+    :param wait_time: Time to wait for an item before closing the queue. Defaults to 5 seconds.
+    """
+
+    def __init__(self, task_name: str, maxsize: int = 100, wait_time: int = 5):
+        super().__init__(maxsize=maxsize)
+        self._task_name = task_name
+        self._closed = False
+        self._wait_time = wait_time
+
+    def close(self):
+        """
+        Mark the queue as closed.
+        """
+        self._closed = True
+
+    def __iter__(self):
+        """
+        Provide an iterator over items in the queue. The iterator will end when the queue
+        is closed and empty.
+        """
+        while not self._closed or not self.empty():
+            try:
+                item = self.get(timeout=self._wait_time)
+                yield item
+            except queue.Empty:
+                qt_logger.warn(
+                    f"{self._task_name} queue: Waiting for {self._wait_time} sec, no item received. Closing.")
+                self.close()
+                break
+            except Exception as e:
+                qt_logger.error(
+                    f"{self._task_name} queue: Error while getting item from queue: {e}")
+                break
+
+
+class WorkingThread(QThread):
+    """long time prod_cons task in a thread and auto get queues
+    running by  signalBus.is_identify_running
+    """
+    threads = 0
+    prod_cons_queues = [
+        ClosableQueue(task_name='read_2_detect'),
+        ClosableQueue(task_name='detected_2_identify'),
+        ClosableQueue(task_name='identified_2_draw'),
+    ]
+
+    def __init__(self, works_name: str, is_consumer=True):
+        super().__init__()
+        self.works_name = works_name
+        self._is_consumer = is_consumer
+        # get queues
+        if not self._is_consumer:
+            self.result_queue = self.get_queues()
+
+        self.jobs_queue = self.get_queues()
+
+        self._is_running = False
+
+        # control all working thread
+        signalBus.is_identify_running.connect(self._update_working)
+
+    def produce(self) -> Any:
+        """produce"""
+        raise NotImplementedError
+
+    def consume(self, item: Any):
+        """consume"""
+        if self._is_consumer:
+            raise NotImplementedError
+
+    def stop_thread(self):
+        self._is_running = False
+        self.wait()
+
+    def run(self):
+        """running long time task in a thread"""
+        qt_logger.info(f"{self.works_name} start")
+        while self._is_running:
+            try:
+                if self._is_consumer:
+                    # continue to consume until queue is empty for a while
+                    for item in self.jobs_queue:
+                        self.consume(item)
+                else:
+                    # continue to produce until queue is full
+                    self.result_queue.put(self.produce())
+            except Exception as e:
+                qt_logger.error(f"WorkingThread.run error:{e}")
+                break
+        qt_logger.info(f"{self.works_name} stop")
+
+    @classmethod
+    def get_queues(cls) -> ClosableQueue:
+        """distribution queues for working thread"""
+        _queue = cls.prod_cons_queues[cls.threads]
+        cls.threads += 1
+        return _queue
+
+    @pyqtSlot(bool)
+    def _update_working(self, is_running: bool):
+        """slot to accept signal to update working state"""
+        self._is_running = is_running

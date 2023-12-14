@@ -11,6 +11,7 @@ class SignalBus(QObject):
     login_failed = pyqtSignal(str)
     login_successfully = pyqtSignal(str)
     is_identify_running = pyqtSignal(bool)
+    identify_results = pyqtSignal(list)
     log_message = pyqtSignal(str)
 
 

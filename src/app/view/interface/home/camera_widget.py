@@ -7,7 +7,8 @@ from qfluentwidgets import TogglePushButton
 from qfluentwidgets import isDarkTheme, FluentIcon
 
 from src.app.config.config import HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
-from src.app.utils.camera import AiCamera, CameraOpenError
+from src.app.utils.boostface.component.camera import CameraOpenError
+from src.app.utils.camera import AiCamera
 from src.app.utils.detector.common import Image2Detect
 from src.app.view.component.link_card import LinkCardView
 
@@ -52,7 +53,7 @@ class CameraModel(QThread):
         self.capture = AiCamera()
         while self._is_running:
             try:
-                frame = self.capture.read()
+                frame = next(self.capture.read())
             except CameraOpenError:
                 print("camera open error or camera has released")
                 break

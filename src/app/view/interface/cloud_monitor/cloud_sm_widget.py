@@ -2,7 +2,6 @@
 from PyQt6.QtCore import QTimer
 
 from src.app.common.client import WebSocketThread
-from src.app.types import Image
 from src.app.view.component.system_monitor import SystemMonitor
 
 __all__ = ['create_cloud_system_monitor']
@@ -21,7 +20,7 @@ class CloudSystemStats(WebSocketThread):
         self.net_throughput = 0
         self.start()
 
-    def working(self, data: dict | str | Image):
+    def receive(self, data: dict | str):
         if not isinstance(data, dict):
             raise TypeError("data must be dict")
         self.cpu_percent = float(data['cpu_percent'])
