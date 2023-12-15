@@ -20,8 +20,8 @@ class MatchInfo(NamedTuple):
 # 定义 Pydantic 模型
 class Face2SearchSchema(BaseModel):
     face_img: str = Field(..., description="Base64 encoded image data")
-    bbox: list[list[float]] = Field(...,
-                                    description="Bounding box coordinates")
+    bbox: list[float] = Field(...,
+                              description="Bounding box coordinates")
     kps: list[list[float]] = Field(..., description="Keypoints")
     det_score: float = Field(..., description="Detection score")
 

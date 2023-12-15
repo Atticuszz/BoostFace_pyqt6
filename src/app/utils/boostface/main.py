@@ -5,35 +5,23 @@
 @Date Created : 14/12/2023
 @Description  :
 """
-from src.app.utils.boostface.component.camera import CameraWorker
-from src.app.utils.boostface.component.common import ClosableQueue
-from src.app.utils.boostface.component.detector import DetectorWorker
-from src.app.utils.boostface.component.identifier import IdentifyWorker
+from src.app.types import Image
+from src.app.utils.boostface.component.camera import Camera
+from src.app.utils.boostface.component.detector import Detector
+from src.app.utils.boostface.component.drawer import Drawer
+from src.app.utils.boostface.component.identifier import Identifier
 
 
 class BoostFace:
-    """
-    worker start by signalBus
-    """
-
     def __init__(self):
-        self._camera = CameraWorker()
-        self._detector = DetectorWorker()
-        self._identifier = IdentifyWorker()
+        self._camera = Camera()
+        self._detector = Detector()
+        self._identifier = Identifier()
+        self._draw = Drawer()
 
-    def start(self):
-        """start all work threads"""
-        self._camera.start()
-        self._detector.start()
-        self._identifier.start()
-
-    def stop(self):
-        """stop all work threads"""
-        self._camera.stop_thread()
-        self._detector.stop_thread()
-        self._identifier.stop_thread()
-
-    def image_queue(self) -> ClosableQueue:
-        """get image from camera"""
-
-        return self._identifier.result_queue
+    def get_result(self) -> Image:
+        img = self._camera.read()
+        detected = self._detector.run_onnx(img)
+        identified = self._identifier.identify(detected)
+        draw_on = self._draw.show(identified)
+        return draw_on

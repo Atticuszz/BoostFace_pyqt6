@@ -12,12 +12,8 @@ from qfluentwidgets import (
 from src.app.common.signal_bus import signalBus
 from src.app.common.translator import Translator
 from src.app.config.config import cfg
-from src.app.view.interface import CloudMonitorInterface
-from src.app.view.interface.home.home_interface import HomeInterface
-from src.app.view.interface.local_monitor.local_monitor_interface import LocalMonitorInterface
-from src.app.view.interface.setting.setting_interface import SettingInterface
+from src.app.view.interface import CloudMonitorInterface, HomeInterface, LocalMonitorInterface, SettingInterface
 from .component.auth_dialog import create_login_dialog
-
 
 class MainWindow(FluentWindow):
 
@@ -67,7 +63,7 @@ class MainWindow(FluentWindow):
             routeKey='avatar',
             widget=NavigationAvatarWidget(
                 'zhiyiYo', ':/gallery/images/shoko.png'),
-            onClick=self.login,  # TODO: bug here click ,failed program
+            onClick=self.login,  # FIXME: bug here click ,failed program
             position=NavigationItemPosition.BOTTOM
         )
 
@@ -112,7 +108,6 @@ class MainWindow(FluentWindow):
         super().resizeEvent(e)
         if hasattr(self, 'splashScreen'):
             self.splashScreen.resize(self.size())
-
     # def switchToSample(self, routeKey, index):
     #     """ switch to sample """
     #     interfaces = self.findChildren(GalleryInterface)

@@ -4,32 +4,38 @@ from typing import Generator
 
 import cv2
 
+from .boostface.component.common import ImageFaces
 from .boostface.main import BoostFace
-from .detector.common import Image, Image2Detect, Bbox, Color
 
 __all__ = ["AiCamera"]
 
+from ..time_tracker import time_tracker
 
-class AiCamera:
+from ..types import Color, Image, Bbox
+
+
+class AiCamera(BoostFace):
     """
     get image from camera and run ai model get result
     """
 
     def __init__(self):
-        self._boostface = BoostFace()
+        super().__init__()
         self._colors: list[Color] = [(200, 150, 255), (255, 255, 153), (
             144, 238, 144), (173, 216, 230), (255, 182, 193), (255, 165, 0)]
-        self._data_queue = self._boostface.image_queue()
+        self._image_queue = self.image_queue()
+        self.start()
 
-    def read(self) -> Generator[Image2Detect]:
+    def read(self) -> Generator[ImageFaces, None, None]:
         """
         read a Image from url by opencv.VideoCapture.read()
         :return: Image
         """
-        for image in self._data_queue:
-            for face in image.faces:
-                self._draw_bbox(image.nd_arr, face.bbox)
-            yield image
+        with time_tracker.track("AiCamera.read"):
+            for image in self._image_queue:
+                for face in image.faces:
+                    self._draw_bbox(image.nd_arr, face.bbox)
+                yield image
 
     def _draw_bbox(self, dimg: Image, bbox: Bbox):
         """

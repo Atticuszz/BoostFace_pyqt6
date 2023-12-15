@@ -8,6 +8,7 @@ from PyQt6.QtWidgets import QApplication
 from qfluentwidgets import FluentTranslator
 
 from src.app.config import cfg
+from src.app.time_tracker import time_tracker
 from src.app.view.main_window import MainWindow
 
 # enable dpi scale
@@ -33,3 +34,4 @@ w = MainWindow()
 w.show()
 
 app.exec()
+time_tracker.close()

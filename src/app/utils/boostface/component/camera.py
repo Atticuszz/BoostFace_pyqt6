@@ -14,8 +14,8 @@ from time import sleep
 
 from src.app.config import cfg
 from src.app.config import qt_logger
-from src.app.types import Image
-from src.app.utils.boostface.component.common import Image2Detect, WorkingThread
+from src.app.time_tracker import time_tracker
+from src.app.utils.boostface.component.common import ImageFaces
 
 
 class CameraOpenError(Exception):
@@ -44,7 +44,7 @@ class CameraConfig(NamedTuple):
     """
     fps: int = 30
     resolution: tuple[int, ...] = (1920, 1080)
-    url: CameraUrl = CameraUrl.laptop
+    url: CameraUrl = CameraUrl.usb
 
 
 class Camera:
@@ -60,25 +60,30 @@ class Camera:
         :param config: CameraOptions()
         """
         self.config = config
-        self.videoCapture = None
-        self._open()
+        self.videoCapture = cv2.VideoCapture(self.config.url.value)
         if config.url != CameraUrl.video:
             self._prepare()
         qt_logger.debug(f"camera init success, {self}")
 
-    def read(self) -> Image:
+    def read(self) -> ImageFaces:
         """
         read a Image from url by opencv.VideoCapture.read()
         :return: Image
         """
-        ret, frame = self.videoCapture.read()
-        if ret is None or frame is None:
-            qt_logger.warn("camera read failed")
-            raise CameraOpenError(
-                f"in {self}.read()  self.videoCapture.read() get None")
-        return frame
+        with time_tracker.track("pure Camera.read"):
+            ret, frame = self.videoCapture.read()
+            if ret is None or frame is None:
+                raise CameraOpenError(
+                    f"in {self}.read()  self.videoCapture.read() get None")
+            if self.config.url == CameraUrl.video:
+                # sleep(1 / self.config.fps)
+                sleep(0.005)
+            elif self.config.url == CameraUrl.usb:
+                sleep(0.0001)
+            # logging.debug(f"camera read success{frame.shape}")
+        return ImageFaces(image=frame, faces=[])
 
-    def release(self):
+    def stop_device(self):
         """
         release camera
         """
@@ -121,18 +126,6 @@ class Camera:
             cv2.CAP_PROP_FOURCC, cv2.VideoWriter.fourcc("M", "J", "P", "G")
         )
 
-    def _open(self):
-        """
-        connect to camera  by url, raise ValueError if failed
-        :return:
-        """
-        self.videoCapture = cv2.VideoCapture(self.config.url.value)
-        if not self.videoCapture.isOpened():
-            qt_logger.warn("camera open failed")
-            raise CameraOpenError(
-                f"Could not open video source from url: {self.config.url.value}")
-        qt_logger.debug("camera open success")
-
     @property
     def cap_codec_format(self):
         """
@@ -148,24 +141,14 @@ class Camera:
         return codec_format
 
 
-class CameraWorker(Camera, WorkingThread):
-    """
-    generate Image2Detect into results queue from Camera instance may be in a thread
-    """
-
-    def __init__(self):
-        super().__init__(works_name="camera_read", is_consumer=False)
-
-    def produce(self) -> Image2Detect:
-        """
-        read image from camera
-        """
-        frame: Image = self.read()
-        if self.config.url == CameraUrl.video:
-            sleep(1 / self.config.fps)
-            # print("camera_read get img")
-        return Image2Detect(image=frame, faces=[])
-
-    def stop_thread(self):
-        self.release()
-        super().stop_thread()
+if __name__ == "__main__":
+    camera = Camera()
+    i = 0
+    while i < 1000:
+        img = camera.read()
+        if cv2.waitKey(1) == 27:
+            break
+        i += 1
+    camera.stop_device()
+    cv2.destroyAllWindows()
+    time_tracker.close()

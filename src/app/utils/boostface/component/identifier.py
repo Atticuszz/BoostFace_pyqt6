@@ -1,11 +1,14 @@
 import heapq
 
+from queue import Queue
+
 import numpy as np
 
 from src.app.common import signalBus
 from src.app.common.client import WebSocketThread
+from src.app.time_tracker import time_tracker
 from src.app.types import Embedding, Bbox, Kps, MatchInfo
-from .common import Face, Image2Detect, WorkingThread
+from .common import Face, ImageFaces
 from .sort_plus import associate_detections_to_trackers, KalmanBoxTracker
 
 
@@ -171,7 +174,7 @@ class Tracker:
         self.iou_threshold = iou_threshold
         self._recycled_ids = []
 
-    def _update(self, image2update: Image2Detect):
+    def _update(self, image2update: ImageFaces):
         """
         according to the "memory" in Kalman tracker update former targets info by Hungarian algorithm
         :param image2update:
@@ -268,12 +271,16 @@ class IdentifyClient(WebSocketThread):
 
     def __init__(self):
         super().__init__(ws_type="identify")
+        self.result_queue = Queue()
+        self.start()
 
     def receive(self, data: dict | str):
         """send to signalBus to results table"""
+        import json
         if not isinstance(data, dict):
-            raise TypeError("data must be dict")
+            data = json.loads(data)
         new_data = [data["id"], data["name"], data["time"]]
+        self.result_queue.put(new_data)
         signalBus.identify_results.emit(new_data)
 
 
@@ -281,7 +288,7 @@ class Identifier(Tracker, IdentifyClient):
     def __init__(self):
         super().__init__()
 
-    def identify(self, image2identify: Image2Detect) -> Image2Detect:
+    def identify(self, image2identify: ImageFaces) -> ImageFaces:
         """
         fill image2identify.faces with match info or return MatchInfo directly
         :param image2identify:
@@ -290,32 +297,20 @@ class Identifier(Tracker, IdentifyClient):
         self._update(image2identify)
         self._search(image2identify)
         # [tar.face.match_info for tar in self._targets.values()]
-        return Image2Detect(
+        return ImageFaces(
             image2identify.nd_arr, [
                 tar.face for tar in self._targets.values() if tar.in_screen])
 
-    def _search(self, image2identify: Image2Detect):
+    def _search(self, image2identify: ImageFaces):
         """
         search in a process and then update face.match_info
         :param image2identify:
         """
         for tar in self._targets.values():
             if tar.rec_satified:
-                self.send(tar.face.face_image(image2identify.nd_arr))
-
-
-class IdentifyWorker(Identifier, WorkingThread):
-    """
-    run detector on images in jobs and put results in results queue in a thread
-    """
-
-    def __init__(self):
-        super().__init__(works_name="detector", is_consumer=True)
-
-    def consume(self, img2identify: Image2Detect) -> Image2Detect:
-        """ run detector on img2detect"""
-        return self.identify(img2identify)
-
-    def stop_thread(self):
-        self.stop_ws()
-        super().stop_thread()
+                # TODO: to slow
+                with time_tracker.track("Identifier.search"):
+                    self.send(tar.face.face_image(image2identify.nd_arr))
+                    res = self.result_queue.get()
+                    if res[0]:
+                        tar.face.match_info = MatchInfo(0.99, res[0])

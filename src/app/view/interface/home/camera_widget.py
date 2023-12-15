@@ -1,3 +1,5 @@
+from threading import Event
+
 import cv2
 from PyQt6.QtCore import Qt, QRectF, QThread, pyqtSignal
 from PyQt6.QtGui import QPixmap, QPainter, QPainterPath, QLinearGradient, QColor, QBrush, QImage
@@ -7,9 +9,9 @@ from qfluentwidgets import TogglePushButton
 from qfluentwidgets import isDarkTheme, FluentIcon
 
 from src.app.config.config import HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
+from src.app.utils.boostface import BoostFace
 from src.app.utils.boostface.component.camera import CameraOpenError
-from src.app.utils.camera import AiCamera
-from src.app.utils.detector.common import Image2Detect
+from src.app.time_tracker import time_tracker
 from src.app.view.component.link_card import LinkCardView
 
 __all__ = ['create_camera_widget', 'create_state_widget']
@@ -48,40 +50,45 @@ class CameraModel(QThread):
         super().__init__()
         self.capture = None
         self._is_running = False
+        self._is_capturing = Event()
 
     def run(self):
-        self.capture = AiCamera()
+        # self.capture = Camera()
+        self.capture = BoostFace()
         while self._is_running:
-            try:
-                frame = next(self.capture.read())
-            except CameraOpenError:
-                print("camera open error or camera has released")
-                break
-            assert isinstance(frame, Image2Detect), "frame is not Image2Detect"
-            rgb_image = cv2.cvtColor(frame.nd_arr, cv2.COLOR_BGR2RGB)
-            h, w, ch = rgb_image.shape
-            bytes_per_line = ch * w
-            convert_to_Qt_format = QImage(
-                rgb_image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
-            self.change_pixmap_signal.emit(convert_to_Qt_format)
+            self._is_capturing.wait()
+            with time_tracker.track("CameraModel.run"):
+                try:
+                    # frame = self.capture.read()
+                    frame = self.capture.get_result()
+                except CameraOpenError:
+                    print("camera open error or camera has released")
+                    break
+                rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                h, w, ch = rgb_image.shape
+                bytes_per_line = ch * w
+                convert_to_Qt_format = QImage(
+                    rgb_image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
+                self.change_pixmap_signal.emit(convert_to_Qt_format)
 
     def start_capture(self):
         # 启动摄像头和视频线程
         if not self.isRunning():
             self._is_running = True
+            self._is_capturing.set()
             self.start()
+        else:
+            self._is_capturing.clear()
 
     def stop_capture(self):
-        # 停止摄像头和视频线程
-        if self.isRunning():
-            self._is_running = False
-            self.wait()
+        time_tracker.close()
+        self._is_capturing.clear()  # 清除捕捉事件，防止捕捉
 
     def stop(self):
-        self._is_running = False
+        self.stop_capture()
         self.capture.release()
+        self._is_running = False
         self.wait()
-
 
 
 class CameraWidget(VideoStreamWidget):

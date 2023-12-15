@@ -7,7 +7,7 @@
 """
 from pathlib import Path
 
-from .common import Image2Detect, Face, WorkingThread
+from .common import ImageFaces, Face
 from ..model_zoo.model_router import get_model
 
 
@@ -17,7 +17,8 @@ class Detector:
     """
 
     def __init__(self):
-        root = Path(__file__).parent / 'det_2.5g.onnx'
+        root = Path(__file__).parents[1] / \
+               'model_zoo' / 'models' / 'det_2.5g.onnx'
         self.detector_model = get_model(root, providers=(
             'CUDAExecutionProvider', 'CPUExecutionProvider'))
         prepare_params = {'ctx_id': 0,
@@ -25,7 +26,7 @@ class Detector:
                           'input_size': (320, 320)}
         self.detector_model.prepare(**prepare_params)
 
-    def run_onnx(self, img2detect: Image2Detect) -> Image2Detect:
+    def run_onnx(self, img2detect: ImageFaces) -> ImageFaces:
         """
         run onnx model
         :param img2detect:
@@ -48,16 +49,3 @@ class Detector:
                  img2detect.nd_arr.shape[0]))
             img2detect.faces.append(face)
         return img2detect
-
-
-class DetectorWorker(Detector, WorkingThread):
-    """
-    run detector on images in jobs and put results in results queue in a thread
-    """
-
-    def __init__(self):
-        super().__init__(works_name="detector", is_consumer=True)
-
-    def consume(self, img2detect: Image2Detect) -> Image2Detect:
-        """ run detector on img2detect"""
-        return self.run_onnx(img2detect)

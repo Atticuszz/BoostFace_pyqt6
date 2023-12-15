@@ -7,7 +7,7 @@ import numpy as np
 import websockets
 from PyQt6.QtCore import pyqtSlot, QThread, pyqtSignal
 
-from src.app.types import Image, Face2Search
+from src.app.types import Face2Search
 from .client import client
 from ...config import qt_logger
 from ...utils.decorator import error_handler
@@ -60,12 +60,14 @@ class WebSocketThread(QThread):
             while self._is_running:
                 try:
                     await self._send_ws_data(websocket)
-                    decoded_data: dict | str | Image = await self._load_ws_data(websocket)
+                    decoded_data: dict | str = await self._load_ws_data(websocket)
+                    qt_logger.debug(f"recv decoded_data:{decoded_data}")
+                    self.receive(decoded_data)
                 except websockets.exceptions.ConnectionClosedError:
                     qt_logger.info(f'Connection closed: {uri}')
                     break
 
-                self.receive(decoded_data)
+    # TODO: thread control
 
     @pyqtSlot(bool)
     def update_is_running(self, state: bool):
@@ -79,12 +81,12 @@ class WebSocketThread(QThread):
 
     @staticmethod
     async def _load_ws_data(
-            websocket: websockets.WebSocketClientProtocol) -> dict | str | Image:
+            websocket: websockets.WebSocketClientProtocol) -> dict | str:
         """ load websocket data
         :exception  websockets.exceptions.ConnectionClosedError
         """
 
-        recv_date: str | bytes | Image = await websocket.recv()
+        recv_date: str | bytes = await websocket.recv()
 
         if isinstance(recv_date, bytes):
             # image
@@ -94,9 +96,12 @@ class WebSocketThread(QThread):
         else:
             try:
                 # dict
-                return json.loads(recv_date)
+                data = json.loads(recv_date)
+                qt_logger.debug(f"recv dict data:{data}")
+                return data
             except json.JSONDecodeError:
                 # pure utf-8 string
+                qt_logger.debug(f"recv str data:{recv_date}")
                 return recv_date + '\n'
 
     async def _send_ws_data(self, websocket: websockets.WebSocketClientProtocol):

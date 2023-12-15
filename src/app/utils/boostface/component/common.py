@@ -6,7 +6,9 @@ from PyQt6.QtCore import QThread, pyqtSlot
 
 from src.app.common import signalBus
 from src.app.config import qt_logger
+from src.app.time_tracker import time_tracker
 from src.app.types import Image, Bbox, Kps, Color, Embedding, MatchInfo, Face2Search
+
 
 
 class Face:
@@ -66,7 +68,7 @@ class Face:
         return Face2Search(face_img, bbox, kps, self.det_score)
 
 
-class Image2Detect:
+class ImageFaces:
     """
     image to detect
     :param image: image
@@ -114,18 +116,19 @@ class ClosableQueue(queue.Queue):
         is closed and empty.
         """
         while not self._closed or not self.empty():
-            try:
-                item = self.get(timeout=self._wait_time)
-                yield item
-            except queue.Empty:
-                qt_logger.warn(
-                    f"{self._task_name} queue: Waiting for {self._wait_time} sec, no item received. Closing.")
-                self.close()
-                break
-            except Exception as e:
-                qt_logger.error(
-                    f"{self._task_name} queue: Error while getting item from queue: {e}")
-                break
+            with time_tracker.track(f"ClosableQueue.__iter__ task {self._task_name}"):
+                try:
+                    item = self.get(timeout=self._wait_time)
+                    yield item
+                except queue.Empty:
+                    qt_logger.warn(
+                        f"{self._task_name} queue: Waiting for {self._wait_time} sec, no item received. Closing.")
+                    self.close()
+                    break
+                except Exception as e:
+                    qt_logger.error(
+                        f"{self._task_name} queue: Error while getting item from queue: {e}")
+                    break
 
 
 class WorkingThread(QThread):
@@ -144,12 +147,13 @@ class WorkingThread(QThread):
         self.works_name = works_name
         self._is_consumer = is_consumer
         # get queues
-        if not self._is_consumer:
-            self.result_queue = self.get_queues()
+        if self._is_consumer:
+            # only for consumer consume jobs
+            self.jobs_queue = self.get_queues()
 
-        self.jobs_queue = self.get_queues()
+        self.result_queue = self.get_queues()
 
-        self._is_running = False
+        self._is_running = True
 
         # control all working thread
         signalBus.is_identify_running.connect(self._update_working)
@@ -171,17 +175,18 @@ class WorkingThread(QThread):
         """running long time task in a thread"""
         qt_logger.info(f"{self.works_name} start")
         while self._is_running:
-            try:
-                if self._is_consumer:
-                    # continue to consume until queue is empty for a while
-                    for item in self.jobs_queue:
-                        self.consume(item)
-                else:
-                    # continue to produce until queue is full
-                    self.result_queue.put(self.produce())
-            except Exception as e:
-                qt_logger.error(f"WorkingThread.run error:{e}")
-                break
+            with time_tracker.track(f"WorkingThread.run task {self.works_name}"):
+                try:
+                    if self._is_consumer:
+                        # continue to consume until queue is empty for a while
+                        for item in self.jobs_queue:
+                            self.consume(item)
+                    else:
+                        # continue to produce until queue is full
+                        self.result_queue.put(self.produce())
+                except Exception as e:
+                    qt_logger.error(f"WorkingThread.run error:{e}")
+                    break
         qt_logger.info(f"{self.works_name} stop")
 
     @classmethod

@@ -16,7 +16,7 @@ class ConsoleSimulator(QThread):
     def run(self):
         count = 0
         while True:
-            time.sleep(1)  # 控制输出速度
+            time.sleep(1000)  # 控制输出速度
             count += 1
             qt_logger.info(f"Line {count}: The current count is {count}\n")
 
