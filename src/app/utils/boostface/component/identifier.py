@@ -1,5 +1,3 @@
-import heapq
-
 from queue import Queue
 
 import numpy as np
@@ -7,9 +5,9 @@ import numpy as np
 from src.app.common import signalBus
 from src.app.common.client import WebSocketThread
 from src.app.common.client.web_socket import WebSocketClient
-from src.app.time_tracker import time_tracker
-from src.app.types import Embedding, Bbox, Kps, MatchedResult, IdentifyResult
-from .common import Face, ImageFaces
+from src.app.utils.time_tracker import time_tracker
+from src.app.types import Bbox, Kps, MatchedResult, IdentifyResult
+from src.app.utils.boostface.common import Face, ImageFaces
 from .sort_plus import associate_detections_to_trackers, KalmanBoxTracker
 
 
@@ -238,6 +236,7 @@ class Identifier(Tracker):
     def __init__(self):
         super().__init__()
         self.indentify_client = WebSocketClient("identify")
+        self.indentify_client.start_ws()
 
     def identify(self, image2identify: ImageFaces) -> ImageFaces:
         """
@@ -255,6 +254,7 @@ class Identifier(Tracker):
 
     def _update_from_result(self):
         """update from client results"""
+        # FIXME: only display one face ?
         while True:
             with time_tracker.track("Identifier.receive"):
                 result_dict = self.indentify_client.receive()
@@ -274,8 +274,7 @@ class Identifier(Tracker):
     def _search(self, image2identify: ImageFaces):
         """ send data to search"""
         for tar in self._targets.values():
-            if tar.rec_satified:
-                # TODO: to slow
+            if tar.rec_satified:  # FIXME: seems like send data under wrong condition
                 with time_tracker.track("Identifier.search"):
                     data_2_send = tar.face.face_image(image2identify.nd_arr)
                     self.indentify_client.send(data_2_send)

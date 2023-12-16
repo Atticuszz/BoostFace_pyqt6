@@ -4,7 +4,6 @@
 @Author       : 18317
 @Date Created : 14/12/2023
 @Description  :
-    camera.py for boostface
 """
 from enum import Enum
 from typing import NamedTuple
@@ -14,8 +13,8 @@ from time import sleep
 
 from src.app.config import cfg
 from src.app.config import qt_logger
-from src.app.time_tracker import time_tracker
-from src.app.utils.boostface.component.common import ImageFaces
+from src.app.utils.time_tracker import time_tracker
+from src.app.utils.boostface.common import ImageFaces
 
 
 class CameraOpenError(Exception):
@@ -44,7 +43,7 @@ class CameraConfig(NamedTuple):
     """
     fps: int = 30
     resolution: tuple[int, ...] = (1920, 1080)
-    url: CameraUrl = CameraUrl.usb
+    url: CameraUrl = CameraUrl.video
 
 
 class Camera:

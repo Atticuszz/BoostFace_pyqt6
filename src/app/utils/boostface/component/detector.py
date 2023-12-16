@@ -7,7 +7,7 @@
 """
 from pathlib import Path
 
-from .common import ImageFaces, Face
+from src.app.utils.boostface.common import ImageFaces, Face
 from ..model_zoo.model_router import get_model
 
 

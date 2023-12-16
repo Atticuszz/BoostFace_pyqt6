@@ -39,7 +39,7 @@ class TimeTracker:
 
     @contextmanager
     def track(self, name):
-        qt_logger.debug(f"tracking:{name}")
+        # qt_logger.debug(f"tracking:{name}")
         start = timer()
         try:
             yield
@@ -80,7 +80,7 @@ class TimeTracker:
 
 
 # Example usage with specified path
-output_path = r'C:\Users\18317\python\BoostFace_pyqt6\tests\performance'
+output_path = r'/performance'
 time_tracker = TimeTracker(output_path)
 
 if __name__ == '__main__':

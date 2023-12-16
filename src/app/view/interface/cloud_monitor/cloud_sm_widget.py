@@ -23,6 +23,8 @@ class CloudSystemStats:
     def update_stats(self):
         """This method will be called by a timer from the controller"""
         data = self.ws_client.receive()
+        if data is None:
+            return
         if isinstance(data, dict):
             self.process_data(data)
         else:

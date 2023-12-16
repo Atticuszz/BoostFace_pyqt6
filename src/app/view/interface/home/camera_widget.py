@@ -11,7 +11,7 @@ from qfluentwidgets import isDarkTheme, FluentIcon
 from src.app.config.config import HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
 from src.app.utils.boostface import BoostFace
 from src.app.utils.boostface.component.camera import CameraOpenError
-from src.app.time_tracker import time_tracker
+from src.app.utils.time_tracker import time_tracker
 from src.app.view.component.link_card import LinkCardView
 
 __all__ = ['create_camera_widget', 'create_state_widget']

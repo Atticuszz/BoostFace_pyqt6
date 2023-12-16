@@ -10,7 +10,7 @@ import cv2
 from numpy import ndarray
 
 from src.app.types import Color, Image, Bbox
-from .common import ImageFaces
+from src.app.utils.boostface.common import ImageFaces
 
 
 class Drawer:

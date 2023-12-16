@@ -6,10 +6,14 @@
 @Description  :
 """
 import asyncio
+import datetime
+
+from time import sleep
 
 import pytest
 import websockets
 
+from src.app.common.client import client
 from src.app.common.client.web_socket import WebSocketClient
 
 
@@ -17,28 +21,19 @@ def test_WebSocketClient():
     client = WebSocketClient("test")
     client.start_ws()
     client.send("Hello, WebSocket!")
+    sleep(1)
     data = client.receive()
-    assert data == "Message text was: Hello, WebSocket!"
-
-
-@pytest.mark.asyncio
-async def test_websocket():
-
-    async with websockets.connect('ws://127.0.0.1:5000/ws/test') as websocket:
-
-        await websocket.send("Hello, WebSocket!")
-        data = await websocket.recv()
-        assert data == "Message text was: Hello, WebSocket!"
+    assert data == "Hello, WebSocket!"
 
 
 @pytest.mark.asyncio
 async def test_websocket_manager():
-
-    async with websockets.connect('ws://127.0.0.1:5000/identify/test/ws/test_id') as websocket:
+    base_url = 'ws://127.0.0.1:5000/identify/test/ws/'
+    time_now = datetime.datetime.now()
+    client_id: str = client.user['id'] + time_now.strftime('%Y%m%d%H%M%S')
+    uri = base_url + client_id
+    async with websockets.connect(uri, extra_headers=client._auth_header()) as websocket:
 
         await websocket.send("Hello, WebSocket!")
         data = await websocket.recv()
         assert data == "Hello, WebSocket!"
-
-if __name__ == "__main__":
-    asyncio.run(test_websocket())
