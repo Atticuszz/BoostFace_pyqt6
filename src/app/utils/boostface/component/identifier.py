@@ -6,8 +6,9 @@ import numpy as np
 
 from src.app.common import signalBus
 from src.app.common.client import WebSocketThread
+from src.app.common.client.web_socket import WebSocketClient
 from src.app.time_tracker import time_tracker
-from src.app.types import Embedding, Bbox, Kps, MatchInfo
+from src.app.types import Embedding, Bbox, Kps, MatchedResult, IdentifyResult
 from .common import Face, ImageFaces
 from .sort_plus import associate_detections_to_trackers, KalmanBoxTracker
 
@@ -20,7 +21,6 @@ class Target:
     :ivar face: Face
     :ivar _frames_since_identified: frames since reced
     :ivar _tracker: KalmanBoxTracker
-    :ivar normed_embedding: Embedding
     """
 
     def __init__(self, face: Face):
@@ -30,7 +30,6 @@ class Target:
         self._frames_since_identified = 0
         self.face: Face = face
         self._tracker: KalmanBoxTracker = KalmanBoxTracker(face.bbox)
-        self.normed_embedding: Embedding = np.zeros(512)
 
     @property
     def rec_satified(self) -> bool:
@@ -40,29 +39,6 @@ class Target:
             return True
         else:
             return False
-
-    @property
-    def colors(self):
-        """
-        state color
-        :return:
-        """
-        red = (0, 0, 255)
-        yellow = (50, 205, 255)
-        green = (152, 251, 152)
-        if self._if_matched:
-            # 有匹配对象
-            if self.face.match_info.score > 0.4:
-                bbox_color = green
-                name_color = green
-            else:
-                # 有匹配对象，但是匹配分数不够，定义为匹配失败的红色
-                bbox_color = red
-                name_color = red
-        else:  # 还没有匹配到对象
-            bbox_color = yellow
-            name_color = yellow
-        return bbox_color, name_color
 
     def update_pos(self, bbox: Bbox, kps: Kps, score: float):
         self.face.bbox = bbox
@@ -117,7 +93,10 @@ class Target:
 
     @property
     def name(self) -> str:
-        return f'target[{self.face.id}]'
+        if self._if_matched:
+            return self.face.match_info.name
+        else:
+            return f'target[{self.face.id}]'
 
     @property
     def _time_satisfied(self) -> bool:
@@ -143,12 +122,12 @@ class Target:
         target_area = (self.face.bbox[2] - self.face.bbox[0]) * \
                       (self.face.bbox[3] - self.face.bbox[1])
         screen_area = (self.face.scene_scale[3] - self.face.scene_scale[1]) * (
-                self.face.scene_scale[2] - self.face.scene_scale[0])
+            self.face.scene_scale[2] - self.face.scene_scale[0])
         return (target_area / screen_area) > scale_threshold
 
     @property
     def _if_matched(self) -> bool:
-        return self.face.match_info.uid is not None
+        return self.face.match_info.Identity_id != ""
 
 
 class Tracker:
@@ -167,8 +146,7 @@ class Tracker:
     ):
         super().__init__()
 
-        # TODO: change dict to list
-        self._targets: dict[int, Target] = {}
+        self._targets: dict[str, Target] = {}
         self.max_age = max_age
         self.min_hits = min_hits
         self.iou_threshold = iou_threshold
@@ -203,14 +181,7 @@ class Tracker:
 
         # add new targets
         for detected_tar in unmatched_det_tars:
-            new_id = self._generate_id()
-            assert new_id not in self._targets, f'{new_id} is already in self._targets'
-            detected_tar.id = new_id
-            self._targets[new_id] = Target(face=detected_tar)
-
-            # dev only
-            self._targets[new_id].face.match_info = MatchInfo(
-                uid=self._targets[new_id].name, score=0.0)
+            self._targets[detected_tar.id] = Target(face=detected_tar)
 
         self._clear_dead()
 
@@ -220,22 +191,15 @@ class Tracker:
         :return tracker predictions
         """
         predicted_tars: list[Face] = []
-        to_del: list[int] = []
         for tar in self._targets.values():
             raw_tar: Face = tar.get_predicted_tar
             # store key in self.self._targets.values()
             pos = raw_tar.bbox
             if np.any(np.isnan(pos)):
-                to_del.append(raw_tar.id)
-            # got new predict tars
-            predicted_tars.append(raw_tar)
-
-        #  del dying tars
-        for k in to_del:
-            assert k in self._targets, f'k = {k} not in self._targets'
-            assert isinstance(k, int), "k in to_del,should be int"
-            heapq.heappush(self._recycled_ids, k)
-            del self._targets[k]
+                del self._targets[tar.face.id]
+            else:
+                # got new predict tars
+                predicted_tars.append(raw_tar)
         return predicted_tars
 
     def _clear_dead(self):
@@ -248,21 +212,7 @@ class Tracker:
             if tar.old_enough(self.max_age):
                 keys.append(tar.face.id)
         for k in keys:
-            try:
-                del self._targets[k]
-            except KeyError:
-                print(f'KeyError: tar.id = {k}')
-            else:
-                heapq.heappush(self._recycled_ids, k)
-
-    def _generate_id(self) -> int:
-        """
-        generate id as small as possible
-        """
-        try:
-            return heapq.heappop(self._recycled_ids)
-        except IndexError:
-            return len(self._targets)
+            del self._targets[k]
 
 
 class IdentifyClient(WebSocketThread):
@@ -284,9 +234,10 @@ class IdentifyClient(WebSocketThread):
         signalBus.identify_results.emit(new_data)
 
 
-class Identifier(Tracker, IdentifyClient):
+class Identifier(Tracker):
     def __init__(self):
         super().__init__()
+        self.indentify_client = WebSocketClient("identify")
 
     def identify(self, image2identify: ImageFaces) -> ImageFaces:
         """
@@ -294,6 +245,7 @@ class Identifier(Tracker, IdentifyClient):
         :param image2identify:
         :return: get image2identify match info
         """
+        self._update_from_result()
         self._update(image2identify)
         self._search(image2identify)
         # [tar.face.match_info for tar in self._targets.values()]
@@ -301,16 +253,29 @@ class Identifier(Tracker, IdentifyClient):
             image2identify.nd_arr, [
                 tar.face for tar in self._targets.values() if tar.in_screen])
 
+    def _update_from_result(self):
+        """update from client results"""
+        while True:
+            with time_tracker.track("Identifier.receive"):
+                result_dict = self.indentify_client.receive()
+                if result_dict:
+                    result = IdentifyResult.from_dict(result_dict)
+                    for tar in self._targets.values():
+                        if tar.face.id == result.uid:
+                            # update match info
+                            tar.face.match_info = MatchedResult.from_IdentifyResult(result)
+
+                            # send to result widget
+                            signalBus.identify_results.emit([result.id, result.name, result.time])
+                            break
+                else:
+                    break
+
     def _search(self, image2identify: ImageFaces):
-        """
-        search in a process and then update face.match_info
-        :param image2identify:
-        """
+        """ send data to search"""
         for tar in self._targets.values():
             if tar.rec_satified:
                 # TODO: to slow
                 with time_tracker.track("Identifier.search"):
-                    self.send(tar.face.face_image(image2identify.nd_arr))
-                    res = self.result_queue.get()
-                    if res[0]:
-                        tar.face.match_info = MatchInfo(0.99, res[0])
+                    data_2_send = tar.face.face_image(image2identify.nd_arr)
+                    self.indentify_client.send(data_2_send)

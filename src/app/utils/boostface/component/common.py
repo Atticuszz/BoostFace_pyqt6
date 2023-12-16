@@ -1,4 +1,5 @@
 import queue
+import uuid
 from typing import Any
 
 import numpy as np
@@ -7,8 +8,7 @@ from PyQt6.QtCore import QThread, pyqtSlot
 from src.app.common import signalBus
 from src.app.config import qt_logger
 from src.app.time_tracker import time_tracker
-from src.app.types import Image, Bbox, Kps, Color, Embedding, MatchInfo, Face2Search
-
+from src.app.types import Image, Bbox, Kps, Color, Embedding, MatchedResult, Face2Search
 
 
 class Face:
@@ -20,27 +20,22 @@ class Face:
             kps: Kps,
             det_score: float,
             scene_scale: tuple[int, int, int, int],
-            face_id: int = 0,
-            color: Color = (50, 205, 255),
+            face_id: str = str(uuid.uuid4())
     ):
         """
         init a face
         :param bbox:shape [4,2]
         :param kps: shape [5,2]
         :param det_score:
-        :param color:
-        :param scene_scale: (x1,y1,x2,y2) of scense image
-        :param match_info: MatchInfo(uid,score)
+        :param scene_scale: (x1,y1,x2,y2) of scene image
         """
         self.bbox: Bbox = bbox
         self.kps: Kps = kps
         self.det_score: float = det_score
         self.scene_scale: tuple[int, int, int, int] = scene_scale
-        # 默认是橙色
-        self.bbox_color: Color = color
         self.embedding: Embedding = np.zeros(512)
-        self.id: int = face_id  # target id
-        self.match_info: MatchInfo = MatchInfo(uid='', score=0.0)
+        self.id = face_id
+        self.match_info = MatchedResult(uid=self.id)
 
     def face_image(self, scene: Image) -> Face2Search:
         """
@@ -65,7 +60,12 @@ class Face:
         # 调整关键点位置
         kps = self.kps - np.array([x1, y1])
 
-        return Face2Search(face_img, bbox, kps, self.det_score)
+        return Face2Search(
+            face_img,
+            bbox,
+            kps,
+            self.det_score,
+            self.match_info.uid)
 
 
 class ImageFaces:

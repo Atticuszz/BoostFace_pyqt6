@@ -1,42 +1,52 @@
 # coding: utf-8
+from typing import Callable
+
+import time
+
 import sys
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import pyqtSignal, QThread
 from PyQt6.QtWidgets import QApplication, QTableWidgetItem, QWidget, QHBoxLayout
 from qfluentwidgets import TableWidget
 
 from src.app.common import signalBus
-from src.app.common.client import WebSocketThread
-from src.app.utils.decorator import error_handler
+from src.app.common.client.web_socket import WebSocketClient
+from src.app.config import qt_logger
 
 __all__ = ['create_result_widget']
 
 
-class TestWidgetModel(WebSocketThread):
-    """test Result widget model"""
-    newData = pyqtSignal(list)  # Signal to emit new data
-    running_signal = signalBus.is_identify_running
-
-    def __init__(self):
-        super().__init__(ws_type="identify")
-        self.headers = ['ID', 'Name', 'Time']
-        self.column_count = len(self.headers)
-
-    @error_handler
-    def receive(self, data: dict | str):
-        """add your working in websocket"""
-        if not isinstance(data, dict):
-            raise TypeError("data must be dict")
-        new_data = [data["id"], data["name"], data["time"]]
-        self.newData.emit(new_data)
-
-
-class ResultWidgetModel(WebSocketThread):
+class ResultWidgetModel(QThread):
     """ Result widget model"""
+    newData = pyqtSignal(list)  # Signal to emit new data
 
-    def __init__(self):
-        super().__init__(ws_type="identify")
+    def __init__(self, ws_type="identify"):
+        super().__init__()
+        self.ws_client = WebSocketClient(ws_type)
+        self._is_running = False
         self.headers = ['ID', 'Name', 'Time']
-        self.column_count = len(self.headers)
+
+    def run(self):
+        self._is_running = True
+        self.ws_client.start_ws()
+        while self._is_running:
+            data = self.ws_client.receive()
+            if data:
+                self.process_data(data)
+            else:
+                time.sleep(0.1)
+
+    def process_data(self, data):
+        # 这里处理数据，并通过信号发送
+        if isinstance(data, dict):
+            new_data = [data[key] for key in self.headers]
+            self.newData.emit(new_data)
+        else:
+            qt_logger.warning(f"identify data type error:{data}")
+
+    def stop(self):
+        self._is_running = False
+        self.ws_client.stop_ws()
+        self.wait()
 
 
 class ResultsWidget(QWidget):
@@ -44,7 +54,7 @@ class ResultsWidget(QWidget):
     def __init__(self, model: ResultWidgetModel | None = None, parent=None):
         super().__init__(parent=parent)
         self.model = model
-        self.close_event = None
+        self.close_event: Callable[[], None] | None = None
         # setTheme(Theme.DARK)
 
         # NOTE: use custom item delegate
@@ -54,7 +64,7 @@ class ResultsWidget(QWidget):
         # self.tableView.setSelectRightClickedRow(True)
 
         self._init_ui()
-        self.tableView.setColumnCount(self.model.column_count)
+        self.tableView.setColumnCount(len(self.model.headers))
         self.tableView.setHorizontalHeaderLabels(self.model.headers)
 
         self.setStyleSheet("Demo{background: rgb(255, 255, 255)} ")
@@ -85,8 +95,7 @@ class ResultsWidget(QWidget):
         self.tableView.resizeColumnsToContents()
 
     def closeEvent(self, event):
-        if self.model.isRunning():
-            signalBus.is_identify_running.emit(False)
+        if self.close_event:
             self.close_event()
         super().closeEvent(event)
 
@@ -97,6 +106,7 @@ class ResultsController:
         self.view = view
         # connect to results
         signalBus.identify_results.connect(self.view.addTableRow)
+        self.view.close_event = self.model.stop
 
 
 def create_result_widget(parent=None) -> ResultsController:

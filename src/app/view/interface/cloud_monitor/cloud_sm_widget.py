@@ -1,56 +1,76 @@
 # coding=utf-8
-from PyQt6.QtCore import QTimer
-
-from src.app.common.client import WebSocketThread
+from src.app.common.client.web_socket import WebSocketClient
 from src.app.view.component.system_monitor import SystemMonitor
 
 __all__ = ['create_cloud_system_monitor']
 
 
-class CloudSystemStats(WebSocketThread):
+from PyQt6.QtCore import QTimer
+
+
+class CloudSystemStats:
     """
     Remote system stats
     """
 
-    def __init__(self):
-        super().__init__(ws_type="cloud_system_monitor")
-        self.last_net_io = 0
+    def __init__(self, ws_type="cloud_system_monitor"):
+        self.ws_client = WebSocketClient(ws_type)
         self.cpu_percent = 0
         self.ram_percent = 0
         self.net_throughput = 0
-        self.start()
+        self.ws_client.start_ws()
 
-    def receive(self, data: dict | str):
+    def update_stats(self):
+        """This method will be called by a timer from the controller"""
+        data = self.ws_client.receive()
+        if isinstance(data, dict):
+            self.process_data(data)
+        else:
+            raise TypeError(f"cloud system monitor data type error:{data}")
+
+    def process_data(self, data: dict):
         if not isinstance(data, dict):
             raise TypeError("data must be dict")
-        self.cpu_percent = float(data['cpu_percent'])
-        self.ram_percent = float(data['ram_percent'])
-        self.net_throughput = float(data['net_throughput'])
+        self.cpu_percent = float(data.get('cpu_percent', 0))
+        self.ram_percent = float(data.get('ram_percent', 0))
+        self.net_throughput = float(data.get('net_throughput', 0))
+
+    def stop_ws(self):
+        self.ws_client.stop_ws()
 
 
 class CloudSystemMonitorC:
-    """ Controller for remote system monitor"""
+    """
+    Controller for remote system monitor
+    """
 
     def __init__(self, view: SystemMonitor, model: CloudSystemStats):
         self.view = view
         self.model = model
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_system_stats)
-
-        self.timer.start(1000)
+        self.timer.start(1000)  # Update every second
+        self.view.close_event = self.stop
 
     def update_system_stats(self):
-        """update cloud system stats"""
-        cpu_percent = self.model.cpu_percent
-        ram_percent = self.model.ram_percent
-        net_throughput = self.model.net_throughput
-        self.view.update_stats(cpu_percent, ram_percent, net_throughput)
+        """ Fetch new data from the model and update the view. """
+        self.model.update_stats()  # Ask the model to fetch new data
+        # Update the view with new data
+        self.view.update_stats(
+            self.model.cpu_percent,
+            self.model.ram_percent,
+            self.model.net_throughput
+        )
+
+    def stop(self):
+        self.model.stop_ws()
+        self.timer.stop()
 
 
 def create_cloud_system_monitor(parent=None) -> CloudSystemMonitorC:
-    """create remote system monitor"""
-    created_model = CloudSystemStats()
-    created_view = SystemMonitor(parent=parent)
-    created_controller = CloudSystemMonitorC(created_view, created_model)
-
-    return created_controller
+    """ Factory function to create the monitor components. """
+    model = CloudSystemStats()
+    # Assume SystemMonitor is a QWidget or similar
+    view = SystemMonitor(parent=parent)
+    controller = CloudSystemMonitorC(view, model)
+    return controller

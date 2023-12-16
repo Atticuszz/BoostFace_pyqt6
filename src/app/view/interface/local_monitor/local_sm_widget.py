@@ -35,6 +35,7 @@ class LocalSystemMonitorC:
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_system_stats)
         self.timer.start(1000)
+        self.view.close_event = self.timer.stop
 
     def update_system_stats(self):
         """update local system stats"""

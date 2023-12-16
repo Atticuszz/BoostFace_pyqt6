@@ -5,3 +5,4 @@
 @Date Created : 14/12/2023
 @Description  :
 """
+from .main import BoostFace
