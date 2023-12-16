@@ -6,13 +6,14 @@ from PyQt6.QtGui import QTextCursor
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout
 from qfluentwidgets import FluentIcon as FIF, TextEdit
 
-from src.app.view.component import ExpandInfoCard
+from src.app.utils.decorator import error_handler
+from src.app.view.component.expand_info_card import ExpandInfoCard
 from src.app.view.component.system_monitor import SystemMonitor
 
 
 class ConsoleSimulator(QThread):
     newText = pyqtSignal(str)
-
+    @error_handler
     def run(self):
         count = 0
         while True:

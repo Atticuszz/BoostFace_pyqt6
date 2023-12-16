@@ -112,7 +112,7 @@ class WebSocketClient(WebSocketBase):
         except asyncio.QueueEmpty:
             qt_logger.warning(f"{self.base_url} : receiver queue is empty")
             return None
-
+    @error_handler
     def run(self):
         """ run websocket"""
         loop = asyncio.new_event_loop()

@@ -14,6 +14,8 @@ from src.app.config import qt_logger
 
 __all__ = ['create_result_widget']
 
+from src.app.utils.decorator import error_handler
+
 
 class ResultWidgetModel(QThread):
     """ Result widget model"""
@@ -24,7 +26,7 @@ class ResultWidgetModel(QThread):
         self.ws_client = WebSocketClient(ws_type)
         self._is_running = False
         self.headers = ['ID', 'Name', 'Time']
-
+    @error_handler
     def run(self):
         self._is_running = True
         self.ws_client.start_ws()

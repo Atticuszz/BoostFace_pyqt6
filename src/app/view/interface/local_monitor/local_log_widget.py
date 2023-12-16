@@ -4,6 +4,7 @@ from PyQt6.QtCore import QThread
 
 from src.app.common import signalBus
 from src.app.config import qt_logger
+from src.app.utils.decorator import error_handler
 from src.app.view.component.console_log_widget import ConsoleLogWidget
 
 
@@ -12,7 +13,7 @@ class ConsoleSimulator(QThread):
     A console output simulator
     Signal: newText
     """
-
+    @error_handler
     def run(self):
         count = 0
         while True:

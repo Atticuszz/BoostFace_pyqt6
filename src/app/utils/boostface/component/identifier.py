@@ -3,7 +3,6 @@ from queue import Queue
 import numpy as np
 
 from src.app.common import signalBus
-from src.app.common.client import WebSocketThread
 from src.app.common.client.web_socket import WebSocketClient
 from src.app.utils.time_tracker import time_tracker
 from src.app.types import Bbox, Kps, MatchedResult, IdentifyResult
@@ -212,24 +211,6 @@ class Tracker:
         for k in keys:
             del self._targets[k]
 
-
-class IdentifyClient(WebSocketThread):
-    """ Result widget model"""
-    running_signal = signalBus.is_identify_running
-
-    def __init__(self):
-        super().__init__(ws_type="identify")
-        self.result_queue = Queue()
-        self.start()
-
-    def receive(self, data: dict | str):
-        """send to signalBus to results table"""
-        import json
-        if not isinstance(data, dict):
-            data = json.loads(data)
-        new_data = [data["id"], data["name"], data["time"]]
-        self.result_queue.put(new_data)
-        signalBus.identify_results.emit(new_data)
 
 
 class Identifier(Tracker):

@@ -5,6 +5,7 @@ from PyQt6.QtCore import pyqtSignal, QThread
 
 from src.app.common.client.web_socket import WebSocketClient
 from src.app.config import qt_logger
+from src.app.utils.decorator import error_handler
 from src.app.view.component.console_log_widget import ConsoleLogWidget
 
 __all__ = ['create_cloud_log']
@@ -20,7 +21,7 @@ class CloudLogM(QThread):
         super().__init__(parent)
         self.ws_client = WebSocketClient("cloud_logging")
         self._is_running = False
-
+    @error_handler
     def run(self):
         self.ws_client.start_ws()
         self._is_running = True

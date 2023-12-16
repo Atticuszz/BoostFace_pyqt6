@@ -1,5 +1,6 @@
 import logging
-
+import sys
+import traceback
 from src.app.common import signalBus
 
 log_format = logging.Formatter(
@@ -24,5 +25,11 @@ stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(log_format)
 
 # set level to debug
-logging.basicConfig(handlers=[qt_logging_handler, stream_handler], level=logging.DEBUG)
+logging.basicConfig(
+    handlers=[
+        qt_logging_handler,
+        stream_handler],
+    level=logging.DEBUG)
 qt_logger = logging.getLogger()
+
+

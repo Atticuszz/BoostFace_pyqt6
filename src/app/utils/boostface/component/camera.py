@@ -43,7 +43,7 @@ class CameraConfig(NamedTuple):
     """
     fps: int = 30
     resolution: tuple[int, ...] = (1920, 1080)
-    url: CameraUrl = CameraUrl.video
+    url: CameraUrl = CameraUrl.laptop
 
 
 class Camera:
