@@ -85,6 +85,7 @@ class ResultsWidget(QWidget):
         self.tableView.verticalHeader().hide()
         self.tableView.resizeColumnsToContents()
 
+    @error_handler
     def addTableRow(self, data: list[str]):
         """
         update table

@@ -11,6 +11,8 @@ from src.app.common.client import client
 
 __all__ = ['create_login_dialog']
 
+from src.app.utils.decorator import error_handler
+
 
 class AuthDialog(MessageBoxBase):
     """ Custom message box """
@@ -92,6 +94,7 @@ class AuthDialogC:
         self.view.email_line_edit.textChanged.connect(self.model.set_email)
         self.view.yesButton.clicked.connect(self.login)
 
+    @error_handler
     def login(self):
         if not self.model.validate_email():
             signalBus.login_failed.emit("your email is invalid!")

@@ -16,10 +16,10 @@ def error_handler(f):
             return f(*args, **kwargs)
         except requests.HTTPError:
             error_info = traceback.format_exc()
-            qt_logger.error(f"HTTPError at {f.__name___}  with {error_info}")
+            qt_logger.error(f"HTTPError at {f.__name__}  with {error_info}")
         except Exception:
             error_info = traceback.format_exc()
-            qt_logger.error(f"Error at {f.__name___} with {error_info}")
+            qt_logger.error(f"Error at {f.__name__} with {error_info}")
         return None
 
     return wrapper

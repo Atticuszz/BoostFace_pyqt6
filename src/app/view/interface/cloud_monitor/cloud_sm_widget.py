@@ -1,5 +1,6 @@
 # coding=utf-8
 from src.app.common.client.web_socket import WebSocketClient
+from src.app.utils.decorator import error_handler
 from src.app.view.component.system_monitor import SystemMonitor
 
 __all__ = ['create_cloud_system_monitor']
@@ -54,6 +55,7 @@ class CloudSystemMonitorC:
         self.timer.start(1000)  # Update every second
         self.view.close_event = self.stop
 
+    @error_handler
     def update_system_stats(self):
         """ Fetch new data from the model and update the view. """
         self.model.update_stats()  # Ask the model to fetch new data

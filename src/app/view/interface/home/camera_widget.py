@@ -29,6 +29,7 @@ class VideoStreamWidget(QWidget):
         self.image_label = QLabel(self)
         self.image_label.setPixmap(self.default_pixmap)
 
+    @error_handler
     def update_image(self, image):
         """start camera to update image"""
         scaled_image = QPixmap.fromImage(image).scaled(
@@ -85,6 +86,7 @@ class CameraModel(QThread):
         time_tracker.close()
         self._is_capturing.clear()  # 清除捕捉事件，防止捕捉
 
+    @error_handler
     def stop(self):
         self.stop_capture()
         self.capture.release()
@@ -239,8 +241,8 @@ class CameraWidgetC:
         # toggle camera
         self.view.toggle_switch.clicked.connect(self.toggle_camera)
         # bind close event
-
-    def toggle_camera(self):
+    @error_handler
+    def toggle_camera(self, checked: bool):
         """
         toggle camera action
         """

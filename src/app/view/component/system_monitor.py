@@ -10,6 +10,7 @@ from PyQt6.uic.properties import QtGui
 from qfluentwidgets import Theme
 
 from src.app.config.config import cfg
+from src.app.utils.decorator import error_handler
 
 
 class ResourceGraph(pg.PlotWidget):
@@ -70,6 +71,7 @@ class SystemMonitor(QWidget):
         self.layout.addWidget(self.net_graph)
         self.close_event: Callable[[], None] | None = None
 
+    @error_handler
     def update_stats(
             self,
             cpu_percent: float,

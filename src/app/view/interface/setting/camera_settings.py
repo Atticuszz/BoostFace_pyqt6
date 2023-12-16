@@ -3,6 +3,7 @@ from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import SettingCardGroup, OptionsSettingCard
 
 from src.app.config.config import cfg
+from src.app.utils.decorator import error_handler
 
 
 class CameraSettingM:

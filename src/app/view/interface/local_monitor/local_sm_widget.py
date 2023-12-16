@@ -1,6 +1,7 @@
 import psutil
 from PyQt6.QtCore import QTimer
 
+from src.app.utils.decorator import error_handler
 from src.app.view.component.system_monitor import SystemMonitor
 
 __all__ = ['create_local_system_monitor']
@@ -37,6 +38,7 @@ class LocalSystemMonitorC:
         self.timer.start(1000)
         self.view.close_event = self.timer.stop
 
+    @error_handler
     def update_system_stats(self):
         """update local system stats"""
         cpu_percent = self.model.get_cpu_usage()

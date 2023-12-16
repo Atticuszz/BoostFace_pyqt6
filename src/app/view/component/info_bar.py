@@ -2,6 +2,7 @@ from PyQt6.QtCore import Qt
 from qfluentwidgets import InfoBar, InfoBarPosition
 
 from src.app.common import signalBus
+from src.app.utils.decorator import error_handler
 
 
 class InforBarCreator:
@@ -44,6 +45,7 @@ class InforBarCreaterC:
         self.view = view
         self.auth_state_connect()
 
+    @error_handler
     def auth_state_connect(self):
         signalBus.login_failed.connect(self.view.login_failed)
         signalBus.login_successfully.connect(self.view.login_successfully)
