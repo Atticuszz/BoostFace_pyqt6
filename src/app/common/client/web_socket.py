@@ -7,12 +7,11 @@ from typing import Any
 import cv2
 import numpy as np
 import websockets
-from PyQt6.QtCore import pyqtSlot, QThread, pyqtSignal
 from cv2 import Mat
 from numpy import ndarray, dtype
 from websockets import WebSocketClientProtocol
 
-from src.app.types import Face2Search, WebsocketRSData
+from src.app.common.types import WebsocketRSData
 from .client import client
 from ...config import qt_logger
 from ...utils.decorator import error_handler
@@ -93,7 +92,11 @@ class WebSocketClient(WebSocketBase):
 
     def stop_ws(self):
         """stop websocket"""
+        if not self.is_alive():  # 检查线程是否已经开始
+            qt_logger.debug(f"WebSocket thread:{self.ws_type}has not been started or already stopped.")
+            return
         self._is_running = False
+        self.sender_queue.put_nowait("STOP")
         self.join()
         qt_logger.info(f"{self.base_url} : websocket stopped")
 
@@ -112,6 +115,7 @@ class WebSocketClient(WebSocketBase):
         except asyncio.QueueEmpty:
             qt_logger.warning(f"{self.base_url} : receiver queue is empty")
             return None
+
     @error_handler
     def run(self):
         """ run websocket"""
@@ -142,9 +146,12 @@ class WebSocketClient(WebSocketBase):
         qt_logger.debug(f"{self.base_url} : start receive messages")
         while self._is_running:
             try:
-                message = await websocket.recv()
+                message = await asyncio.wait_for(websocket.recv(), timeout=1.0)
                 decoded = self._decode(message)
                 await self.receiver_queue.put(decoded)
+            except asyncio.TimeoutError:
+                qt_logger.debug(f"{self.base_url} : receive timeout")
+                continue
             except websockets.exceptions.ConnectionClosedError:
                 qt_logger.info(f'{self.base_url} : Connection closed')
                 break
@@ -154,6 +161,8 @@ class WebSocketClient(WebSocketBase):
         while self._is_running:
             try:
                 data = await self.sender_queue.get()
+                if data == "STOP":
+                    break
                 encoded = self._encode(data)
                 await websocket.send(encoded)
                 self.sender_queue.task_done()

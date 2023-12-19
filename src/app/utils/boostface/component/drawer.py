@@ -9,7 +9,7 @@ import cv2
 
 from numpy import ndarray
 
-from src.app.types import Color, Image, Bbox
+from src.app.common.types import Color, Image, Bbox
 from src.app.utils.boostface.common import ImageFaces
 
 

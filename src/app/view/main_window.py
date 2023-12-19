@@ -1,4 +1,5 @@
 # coding: utf-8
+
 from PyQt6.QtCore import QSize
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QApplication
@@ -14,7 +15,6 @@ from src.app.common.translator import Translator
 from src.app.config.config import cfg
 from src.app.view.interface import CloudMonitorInterface, HomeInterface, LocalMonitorInterface, SettingInterface
 from .component.auth_dialog import create_login_dialog
-from .resource import compiled_resources
 class MainWindow(FluentWindow):
 
     def __init__(self):
@@ -108,6 +108,7 @@ class MainWindow(FluentWindow):
         super().resizeEvent(e)
         if hasattr(self, 'splashScreen'):
             self.splashScreen.resize(self.size())
+
     # def switchToSample(self, routeKey, index):
     #     """ switch to sample """
     #     interfaces = self.findChildren(GalleryInterface)

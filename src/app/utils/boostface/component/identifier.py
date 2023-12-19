@@ -1,11 +1,10 @@
-from queue import Queue
-
 import numpy as np
 
 from src.app.common import signalBus
 from src.app.common.client.web_socket import WebSocketClient
+from src.app.config import qt_logger
 from src.app.utils.time_tracker import time_tracker
-from src.app.types import Bbox, Kps, MatchedResult, IdentifyResult
+from src.app.common.types import Bbox, Kps, MatchedResult, IdentifyResult
 from src.app.utils.boostface.common import Face, ImageFaces
 from .sort_plus import associate_detections_to_trackers, KalmanBoxTracker
 
@@ -212,7 +211,6 @@ class Tracker:
             del self._targets[k]
 
 
-
 class Identifier(Tracker):
     def __init__(self):
         super().__init__()
@@ -233,6 +231,9 @@ class Identifier(Tracker):
             image2identify.nd_arr, [
                 tar.face for tar in self._targets.values() if tar.in_screen])
 
+    def stop_ws_client(self):
+        self.indentify_client.stop_ws()
+
     def _update_from_result(self):
         """update from client results"""
         # FIXME: only display one face ?
@@ -244,10 +245,12 @@ class Identifier(Tracker):
                     for tar in self._targets.values():
                         if tar.face.id == result.uid:
                             # update match info
-                            tar.face.match_info = MatchedResult.from_IdentifyResult(result)
+                            tar.face.match_info = MatchedResult.from_IdentifyResult(
+                                result)
 
                             # send to result widget
-                            signalBus.identify_results.emit([result.id, result.name, result.time])
+                            signalBus.identify_results.emit(
+                                [result.id, result.name, result.time])
                             break
                 else:
                     break

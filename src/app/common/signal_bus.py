@@ -13,6 +13,6 @@ class SignalBus(QObject):
     is_identify_running = pyqtSignal(bool)
     identify_results = pyqtSignal(list)
     log_message = pyqtSignal(str)
-
+    quit_all = pyqtSignal()  # call close event of all sub-threads
 
 signalBus = SignalBus()

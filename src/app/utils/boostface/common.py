@@ -8,7 +8,7 @@ from PyQt6.QtCore import QThread, pyqtSlot
 from src.app.common import signalBus
 from src.app.config import qt_logger
 from src.app.utils.time_tracker import time_tracker
-from src.app.types import Image, Bbox, Kps, Embedding, MatchedResult, Face2Search
+from src.app.common.types import Image, Bbox, Kps, Embedding, MatchedResult, Face2Search
 
 
 class Face:

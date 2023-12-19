@@ -52,11 +52,11 @@ class LocalDevC:
     def __init__(self, model: LocalLogModel, view: ConsoleLogWidget):
         self.model = model
         self.view = view
-        self.view.close_event = self.model.console_simulator.stop
+        # self.view.close_event = self.model.console_simulator.stop
         # self.model.console_simulator.newText.connect(self.console_append_text)
         # receive log message from all sender in the bus
         signalBus.log_message.connect(self.view.append_text)
-        self.model.console_simulator.start()
+        # self.model.console_simulator.start()
 
 
 def create_local_log(parent=None) -> LocalDevC:

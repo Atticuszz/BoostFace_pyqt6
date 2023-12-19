@@ -13,6 +13,7 @@ from time import sleep
 
 from src.app.config import cfg
 from src.app.config import qt_logger
+from src.app.utils.decorator import error_handler
 from src.app.utils.time_tracker import time_tracker
 from src.app.utils.boostface.common import ImageFaces
 
@@ -67,7 +68,8 @@ class Camera:
     def read(self) -> ImageFaces:
         """
         read a Image from url by opencv.VideoCapture.read()
-        :return: Image
+        :exception CameraOpenError
+        :return: ImageFaces
         """
         with time_tracker.track("pure Camera.read"):
             ret, frame = self.videoCapture.read()
@@ -82,6 +84,7 @@ class Camera:
             # logging.debug(f"camera read success{frame.shape}")
         return ImageFaces(image=frame, faces=[])
 
+    @error_handler
     def stop_device(self):
         """
         release camera

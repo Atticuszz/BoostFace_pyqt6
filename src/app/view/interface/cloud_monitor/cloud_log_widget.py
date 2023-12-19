@@ -3,6 +3,7 @@ import time
 
 from PyQt6.QtCore import pyqtSignal, QThread
 
+from src.app.common import signalBus
 from src.app.common.client.web_socket import WebSocketClient
 from src.app.config import qt_logger
 from src.app.utils.decorator import error_handler
@@ -21,6 +22,7 @@ class CloudLogM(QThread):
         super().__init__(parent)
         self.ws_client = WebSocketClient("cloud_logging")
         self._is_running = False
+
     @error_handler
     def run(self):
         self.ws_client.start_ws()
@@ -37,6 +39,7 @@ class CloudLogM(QThread):
         self._is_running = False
         self.ws_client.stop_ws()
         self.wait()
+        qt_logger.debug("CloudLogM stopped")
 
 
 class CloudLogC:
@@ -48,7 +51,7 @@ class CloudLogC:
         self.model = model
         self.view = view
         self.model.cloud_log_data.connect(self.view.append_text)
-        self.view.close_event = self.model.stop
+        signalBus.quit_all.connect(self.model.stop)
         self.model.start()
 
 

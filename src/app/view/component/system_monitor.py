@@ -1,12 +1,10 @@
 """
 System Monitor Widget
 """
-from typing import Callable, Optional
 
 import pyqtgraph as pg
 from PyQt6.QtGui import QLinearGradient, QColor, QPainter, QBrush
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
-from PyQt6.uic.properties import QtGui
 from qfluentwidgets import Theme
 
 from src.app.config.config import cfg
@@ -69,8 +67,8 @@ class SystemMonitor(QWidget):
         self.layout.addWidget(self.cpu_graph)
         self.layout.addWidget(self.ram_graph)
         self.layout.addWidget(self.net_graph)
-        self.close_event: Callable[[], None] | None = None
-
+        # self.close_event: Callable[[], None] | None = None
+        # signalBus.quit_all.connect(self.closeEvent)
     @error_handler
     def update_stats(
             self,
@@ -82,7 +80,9 @@ class SystemMonitor(QWidget):
         self.ram_graph.update_data(ram_percent)
         self.net_graph.update_data(net_throughput)
 
-    def closeEvent(self, event) -> None:
-        if self.close_event:
-            self.close_event()
-        super().closeEvent(event)
+    # def closeEvent(self, event) -> None:
+    #     if self.close_event:
+    #         self.close_event()
+    #
+    #     qt_logger.debug("close cloud system monitor sub sub thread")
+    #     super().closeEvent(event)

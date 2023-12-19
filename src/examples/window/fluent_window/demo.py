@@ -1,11 +1,12 @@
 # coding:utf-8
+
 import sys
 
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QIcon, QDesktopServices
 from PyQt6.QtWidgets import QApplication, QFrame, QHBoxLayout
-from qfluentwidgets import (NavigationItemPosition, MessageBox, setTheme, Theme, FluentWindow,
-                            NavigationAvatarWidget, qrouter, SubtitleLabel, setFont, InfoBadge,
+from qfluentwidgets import (NavigationItemPosition, MessageBox, FluentWindow,
+                            NavigationAvatarWidget, SubtitleLabel, setFont, InfoBadge,
                             InfoBadgePosition)
 from qfluentwidgets import FluentIcon as FIF
 

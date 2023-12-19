@@ -49,6 +49,7 @@ class ResultWidgetModel(QThread):
         self._is_running = False
         self.ws_client.stop_ws()
         self.wait()
+        qt_logger.debug("ResultWidgetModel stopped")
 
 
 class ResultsWidget(QWidget):
@@ -97,10 +98,10 @@ class ResultsWidget(QWidget):
         # auto resize columns
         self.tableView.resizeColumnsToContents()
 
-    def closeEvent(self, event):
-        if self.close_event:
-            self.close_event()
-        super().closeEvent(event)
+    # def closeEvent(self, event):
+    #     if self.close_event:
+    #         self.close_event()
+    #     super().closeEvent(event)
 
 
 class ResultsController:
@@ -109,7 +110,7 @@ class ResultsController:
         self.view = view
         # connect to results
         signalBus.identify_results.connect(self.view.addTableRow)
-        self.view.close_event = self.model.stop
+        signalBus.quit_all.connect(self.model.stop)
 
 
 def create_result_widget(parent=None) -> ResultsController:

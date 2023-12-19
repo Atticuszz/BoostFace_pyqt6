@@ -1,5 +1,7 @@
 # coding=utf-8
+from src.app.common import signalBus
 from src.app.common.client.web_socket import WebSocketClient
+from src.app.config import qt_logger
 from src.app.utils.decorator import error_handler
 from src.app.view.component.system_monitor import SystemMonitor
 
@@ -40,6 +42,7 @@ class CloudSystemStats:
 
     def stop_ws(self):
         self.ws_client.stop_ws()
+        qt_logger.debug("CloudSystemStats stopped")
 
 
 class CloudSystemMonitorC:
@@ -53,7 +56,7 @@ class CloudSystemMonitorC:
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_system_stats)
         self.timer.start(1000)  # Update every second
-        self.view.close_event = self.stop
+        signalBus.quit_all.connect(self.stop)
 
     @error_handler
     def update_system_stats(self):

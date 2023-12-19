@@ -7,6 +7,7 @@ from PyQt6.QtCore import Qt, QTranslator
 from PyQt6.QtWidgets import QApplication
 from qfluentwidgets import FluentTranslator
 
+from src.app.common import signalBus
 from src.app.config import cfg
 from src.app.utils.time_tracker import time_tracker
 from src.app.view.main_window import MainWindow
@@ -34,4 +35,5 @@ w = MainWindow()
 w.show()
 
 app.exec()
+signalBus.quit_all.emit()  # quit all sub_thread
 time_tracker.close()

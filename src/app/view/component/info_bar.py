@@ -24,6 +24,7 @@ class InforBarCreator:
             parent=self.main_window
         )
 
+    @error_handler
     def login_successfully(self, content: str):
         """ login successfully"""
         InfoBar.success(

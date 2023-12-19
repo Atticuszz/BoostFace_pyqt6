@@ -1,4 +1,6 @@
-from threading import Event
+from typing import Callable
+
+from time import sleep
 
 import cv2
 from PyQt6.QtCore import Qt, QRectF, QThread, pyqtSignal
@@ -8,6 +10,8 @@ from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import TogglePushButton
 from qfluentwidgets import isDarkTheme, FluentIcon
 
+from src.app.common import signalBus
+from src.app.config import qt_logger
 from src.app.config.config import HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
 from src.app.utils.boostface import BoostFace
 from src.app.utils.boostface.component.camera import CameraOpenError
@@ -30,7 +34,7 @@ class VideoStreamWidget(QWidget):
         self.image_label.setPixmap(self.default_pixmap)
 
     @error_handler
-    def update_image(self, image):
+    def update_image(self, image: QImage):
         """start camera to update image"""
         scaled_image = QPixmap.fromImage(image).scaled(
             self.img_size[0],
@@ -50,19 +54,30 @@ class CameraModel(QThread):
 
     def __init__(self):
         super().__init__()
-        self.capture = None
-        self._is_running = False
-        self._is_capturing = Event()
+        self.ai_camera: BoostFace | None = None  # lazy load ,load as start thread
+        self._t_running = False
+        self._c_sleeping = False
+        self.img_size = (960, 540)
+        self.default_pixmap = QPixmap(self.img_size[0], self.img_size[1])
+        self.default_pixmap.fill(QColor(0, 0, 0, 0))
+
     @error_handler
     def run(self):
         # self.capture = Camera()
-        self.capture = BoostFace()
-        while self._is_running:
-            self._is_capturing.wait()
+
+        while self._t_running:
+
+            if self._c_sleeping:
+                # set empty img as camera sleeping
+                self.change_pixmap_signal.emit(self.default_pixmap.toImage())
+                sleep(2)
+                qt_logger.debug("ai_camera is sleeping")
+                continue
+
             with time_tracker.track("CameraModel.run"):
                 try:
                     # frame = self.capture.read()
-                    frame = self.capture.get_result()
+                    frame = self.ai_camera.get_result()
                 except CameraOpenError:
                     print("camera open error or camera has released")
                     break
@@ -74,24 +89,30 @@ class CameraModel(QThread):
                 self.change_pixmap_signal.emit(convert_to_Qt_format)
 
     def start_capture(self):
-        # 启动摄像头和视频线程
-        if not self.isRunning():
-            self._is_running = True
-            self._is_capturing.set()
-            self.start()
+        """start capture thread"""
+        if self.ai_camera is None:
+            # device init
+            self.ai_camera = BoostFace()
         else:
-            self._is_capturing.clear()
+            # device wake up
+            self._c_sleeping = False
+        # thread init
+        if not self.isRunning():
+            self._t_running = True
+            self.start()
 
     def stop_capture(self):
-        time_tracker.close()
-        self._is_capturing.clear()  # 清除捕捉事件，防止捕捉
+        """sleep capture"""
+        # time_tracker.close()
+        self._c_sleeping = True
 
     @error_handler
     def stop(self):
         self.stop_capture()
-        self.capture.release()
-        self._is_running = False
+        self.ai_camera.stop_app()
+        self._t_running = False
         self.wait()
+        qt_logger.debug("CameraModel stopped")
 
 
 class CameraWidget(VideoStreamWidget):
@@ -103,9 +124,8 @@ class CameraWidget(VideoStreamWidget):
     add control components on video stream widget
     """
 
-    def __init__(self, model: CameraModel | None = None, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.model = model
         self.layout = QVBoxLayout(self)
 
         # need to connect in controller
@@ -116,11 +136,13 @@ class CameraWidget(VideoStreamWidget):
         # self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.layout.addWidget(self.toggle_switch)
         # self.setLayout(self.layout)
+        self.close_event: Callable[[], None] | None = None
 
-    def closeEvent(self, event) -> None:
-        if self.model.isRunning():
-            self.model.stop()
-        super().closeEvent(event)
+    # def closeEvent(self, event) -> None:
+    #     if self.close_event:
+    #         self.close_event()
+    #
+    #     super().closeEvent(event)
 
 
 # TODO: change to true camera state
@@ -239,25 +261,27 @@ class CameraWidgetC:
         self.model.change_pixmap_signal.connect(
             self.view.update_image)
         # toggle camera
-        self.view.toggle_switch.clicked.connect(self.toggle_camera)
+        self.view.toggle_switch.toggled.connect(self.toggle_camera)
         # bind close event
+        signalBus.quit_all.connect(self.model.stop)
+
     @error_handler
     def toggle_camera(self, checked: bool):
         """
         toggle camera action
         """
-        if self.model.isRunning():
-            self.model.stop_capture()
-        else:
-            # TODO: bug here ，toggle to failed program
+        qt_logger.debug(f"toggle_camera {checked}")
+        if checked:
             self.model.start_capture()
-            self.view.reset_image()
+            # self.view.reset_image()
+        else:
+            self.model.stop_capture()
 
 
 def create_camera_widget(parent=None) -> CameraWidgetC:
     """ create camera widget"""
     created_model = CameraModel()
-    created_view = CameraWidget(created_model, parent=parent)
+    created_view = CameraWidget(parent=parent)
     created_controller = CameraWidgetC(created_model, created_view)
 
     return created_controller
