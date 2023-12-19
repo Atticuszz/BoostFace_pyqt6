@@ -16,7 +16,9 @@ from contextlib import contextmanager
 
 from src.app.config import qt_logger
 
-
+# TODO: add decorator func
+# TODO: add fixed time test
+# TODO: add resource monitor as single multi tests
 class TimeTracker:
     _instance = None
 

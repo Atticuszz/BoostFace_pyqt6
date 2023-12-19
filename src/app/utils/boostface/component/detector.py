@@ -7,6 +7,7 @@
 """
 from pathlib import Path
 
+from src.app.config import qt_logger
 from src.app.utils.boostface.common import ImageFaces, Face
 from ..model_zoo.model_router import get_model
 
@@ -48,4 +49,5 @@ class Detector:
                  img2detect.nd_arr.shape[1],
                  img2detect.nd_arr.shape[0]))
             img2detect.faces.append(face)
+        qt_logger.debug(f"detector detect {len(img2detect.faces)} faces")
         return img2detect

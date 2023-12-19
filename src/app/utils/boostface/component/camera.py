@@ -5,14 +5,13 @@
 @Date Created : 14/12/2023
 @Description  :
 """
-from enum import Enum
-from typing import NamedTuple
 
 import cv2
 from time import sleep
 
 from src.app.config import cfg
 from src.app.config import qt_logger
+from src.app.config.config import CameraUrl, CameraConfig
 from src.app.utils.decorator import error_handler
 from src.app.utils.time_tracker import time_tracker
 from src.app.utils.boostface.common import ImageFaces
@@ -27,26 +26,7 @@ class CameraOpenError(Exception):
         super().__init__(message)
         self.message = message
 
-
-class CameraUrl(Enum):
-    """
-    url configs for camera
-    """
-    laptop: int = 0
-    usb: int = 1
-    ip: str = "http://"
-    video: str = r"C:\Users\18317\OneDrive\python\BoostFace\src\boostface\db\data\test_01\video\Nola_Lyirs.mp4"
-
-
-class CameraConfig(NamedTuple):
-    """
-    config for Camera
-    """
-    fps: int = 30
-    resolution: tuple[int, ...] = (1920, 1080)
-    url: CameraUrl = CameraUrl.laptop
-
-
+# FIXME: video read lead to crash
 class Camera:
     """
     read image from camera by opencv.VideoCapture.read() from the given url
@@ -54,7 +34,7 @@ class Camera:
 
     def __init__(
             self, config: CameraConfig = CameraConfig(
-                fps=cfg.cameraFps.value)):
+                fps=cfg.cameraFps.value, url=cfg.cameraDevice.value)):
         """
         cmd 运行setx OPENCV_VIDEOIO_PRIORITY_MSMF 0后重启，可以加快摄像头打开的速度
         :param config: CameraOptions()
@@ -78,7 +58,7 @@ class Camera:
                     f"in {self}.read()  self.videoCapture.read() get None")
             if self.config.url == CameraUrl.video:
                 # sleep(1 / self.config.fps)
-                sleep(0.005)
+                sleep(0.01)
             elif self.config.url == CameraUrl.usb:
                 sleep(0.0001)
             # logging.debug(f"camera read success{frame.shape}")

@@ -109,7 +109,8 @@ class CameraModel(QThread):
     @error_handler
     def stop(self):
         self.stop_capture()
-        self.ai_camera.stop_app()
+        if self.ai_camera:
+            self.ai_camera.stop_app()
         self._t_running = False
         self.wait()
         qt_logger.debug("CameraModel stopped")

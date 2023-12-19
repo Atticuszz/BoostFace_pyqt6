@@ -33,7 +33,7 @@ app.installTranslator(galleryTranslator)
 # create main window
 w = MainWindow()
 w.show()
-
+# FIXME: tab change window lead to crash
 app.exec()
 signalBus.quit_all.emit()  # quit all sub_thread
 time_tracker.close()

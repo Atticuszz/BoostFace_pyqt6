@@ -15,6 +15,10 @@ from src.app.common.translator import Translator
 from src.app.config.config import cfg
 from src.app.view.interface import CloudMonitorInterface, HomeInterface, LocalMonitorInterface, SettingInterface
 from .component.auth_dialog import create_login_dialog
+from .resource import compiled_resources
+
+
+# FIXME: move window lead to crash
 class MainWindow(FluentWindow):
 
     def __init__(self):

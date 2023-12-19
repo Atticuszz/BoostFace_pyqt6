@@ -62,14 +62,15 @@ class Target:
         if the target is too old ,should be del
         """
         return self._frames_since_update > max_age
-
+    # FIXME: seems lead to to few faces bbox in img
     @property
     def in_screen(self) -> bool:
         """
         if the target is in screen should be satisfied min_hits,forbid the shiver
         """
-        min_hits = 3  # almost 0.1s if fps=30
-        return self._hit_streak >= min_hits
+        min_hits = 1  # almost 0.1s if fps=30
+        # return self._hit_streak >= min_hits
+        return True
 
     @property
     def get_predicted_tar(self) -> Face:
@@ -224,9 +225,12 @@ class Identifier(Tracker):
         :return: get image2identify match info
         """
         self._update_from_result()
+        # FIXME: update failed add more than one face
         self._update(image2identify)
         self._search(image2identify)
         # [tar.face.match_info for tar in self._targets.values()]
+        qt_logger.debug(f"identifier identify {len(image2identify.faces)} faces")
+        qt_logger.debug(f"identifier identify {len(self._targets)} targets")
         return ImageFaces(
             image2identify.nd_arr, [
                 tar.face for tar in self._targets.values() if tar.in_screen])

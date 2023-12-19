@@ -10,6 +10,7 @@ import cv2
 from numpy import ndarray
 
 from src.app.common.types import Color, Image, Bbox
+from src.app.config import qt_logger
 from src.app.utils.boostface.common import ImageFaces
 
 
@@ -121,8 +122,10 @@ class Drawer:
 
     def _draw_on(self, image2draw_on: ImageFaces):
         dimg = image2draw_on.nd_arr
+        qt_logger.debug(f"drawer draw {len(image2draw_on.faces)} faces")
         for face in image2draw_on.faces:
             # face=[bbox, kps, det_score, color, match_info]
+
             bbox = face.bbox.astype(int)
             if face.match_info.uid:
                 bbox_color = (0, 0, 255)

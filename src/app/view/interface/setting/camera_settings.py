@@ -17,7 +17,7 @@ class CameraSettingM:
 
         self.camera_device = cfg.cameraDevice
         self.camera_device_options_texts = [
-            'laptop camera', 'external camera'
+            'laptop camera', 'external camera', 'video'
         ]
 
         self.camera_resolution = cfg.cameraResolution
@@ -60,7 +60,7 @@ class CameraSettingGroup(SettingCardGroup):
         self.addSettingCard(self.cameraDeviceCard)
         self.addSettingCard(self.cameraResolutionCard)
 
-
+# FIXME: invalid setting change
 class CameraSettingC:
     """ Camera setting controller"""
 
