@@ -6,14 +6,18 @@
 @Description  :
 """
 from pathlib import Path
+from time import sleep
 
 from src.app.config import qt_logger
-from src.app.utils.boostface.common import ImageFaces, Face
+from src.app.utils.boostface.common import ImageFaces, Face, ThreadBase
 from ..model_zoo.model_router import get_model
+from ...decorator import error_handler
 from ...time_tracker import time_tracker
 
 # TODO: run into sub_thread or process
-class Detector:
+
+
+class DetectorBase:
     """
     scrfd det_2.5g.onnx with onnxruntime
     """
@@ -53,3 +57,34 @@ class Detector:
             img2detect.faces.append(face)
         qt_logger.debug(f"detector detect {len(img2detect.faces)} faces")
         return img2detect
+
+
+class Detector(ThreadBase):
+    def __init__(self):
+        super().__init__()
+        self.detector = DetectorBase()
+        super().start()
+
+    @time_tracker.track_func
+    def read(self, img: ImageFaces | None = None) -> ImageFaces:
+        while True:
+            try:
+                if img:
+                    self._jobs_queue.append(img)
+                return self._result_queue.popleft()
+            except IndexError:
+                qt_logger.debug("detector._result_queue is empty")
+                sleep(0.005)
+
+    @error_handler
+    def run(self):
+        while self._is_running.is_set():
+
+            self._is_sleeping.wait()
+            try:
+                img2detect = self._jobs_queue.popleft()
+            except IndexError:
+                qt_logger.debug("detector._jobs_queue is empty")
+            else:
+                img2detect = self.detector.run_onnx(img2detect)
+                self._result_queue.append(img2detect)

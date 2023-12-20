@@ -13,7 +13,7 @@ from src.app.config import qt_logger
 from src.app.config.config import HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
 from src.app.utils.boostface import BoostFace
 from src.app.utils.boostface.component.camera import CameraOpenError
-from src.app.utils.decorator import error_handler
+from src.app.utils.decorator import error_handler, calm_down
 from src.app.utils.time_tracker import time_tracker
 from src.app.view.component.link_card import LinkCardView
 
@@ -71,18 +71,20 @@ class CameraModel(QThread):
                 continue
 
             with time_tracker.track("CameraModel.run"):
-                try:
-                    # frame = self.capture.read()
-                    frame = self.ai_camera.get_result()
-                except CameraOpenError:
-                    print("camera open error or camera has released")
-                    break
-                rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                h, w, ch = rgb_image.shape
-                bytes_per_line = ch * w
-                convert_to_Qt_format = QImage(
-                    rgb_image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
-                self.change_pixmap_signal.emit(convert_to_Qt_format)
+
+                with calm_down(0.03):
+                    try:
+                        # frame = self.capture.read()
+                        frame = self.ai_camera.get_result()
+                    except CameraOpenError:
+                        print("camera open error or camera has released")
+                        break
+                    rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    h, w, ch = rgb_image.shape
+                    bytes_per_line = ch * w
+                    convert_to_Qt_format = QImage(
+                        rgb_image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
+                    self.change_pixmap_signal.emit(convert_to_Qt_format)
 
     def _wake_up(self):
         self.ai_camera.wake_up()

@@ -6,6 +6,7 @@
 @Description  :
 """
 from functools import wraps
+from types import FunctionType
 from typing import Callable
 
 import time
@@ -65,10 +66,19 @@ class TimeTracker:
 
     def track_func(self, func: Callable):
         """self.track decorator for functions"""
+
         @wraps(func)
         def wrapper(*args, **kwargs):
-            with self.track(func.__name__):
+            # 根据被装饰函数的类型确定如何获取跟踪名称
+            if isinstance(func, FunctionType):
+                name = func.__qualname__  # 对于类方法和静态方法
+            else:
+                # 对于实例方法
+                name = f"{args[0].__class__.__name__}.{func.__name__}"
+
+            with self.track(name):
                 return func(*args, **kwargs)
+
         return wrapper
 
     def save_plots(self):

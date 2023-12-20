@@ -16,7 +16,7 @@ from src.app.config import qt_logger
 from src.app.config.config import CameraUrl, CameraConfig
 from src.app.utils.decorator import error_handler
 from src.app.utils.time_tracker import time_tracker
-from src.app.utils.boostface.common import ImageFaces
+from src.app.utils.boostface.common import ImageFaces, ThreadBase
 
 
 class CameraOpenError(Exception):
@@ -94,53 +94,24 @@ class CameraBase:
         return repr_string
 
 
-class CameraThreadBase(Thread):
-    """CameraBase thread"""
 
-    def run(self):
-        """long time thread works"""
-        pass
-
-    def read(self) -> ImageFaces | None:
-        """read from result_queue"""
-        pass
-
-    def wake_up(self):
-        """wake up thread"""
-        pass
-
-    def sleep(self):
-        """sleep thread"""
-        pass
-
-    def stop(self):
-        """release camera and kill thread """
-        pass
-
-class Camera(CameraThreadBase):
+class Camera(ThreadBase):
     """Camera component"""
 
     def __init__(self):
         super().__init__()
-        self._result_queue = deque(maxlen=1000)
         self._camera_base = CameraBase()
-        self._is_running = Event()
-        self._is_sleeping = Event()
-        self._is_running.set()
         self._camera = self._camera_base.videoCapture
         super().start()
 
     @time_tracker.track_func
-    def read(self) -> ImageFaces | None:
+    def read(self) -> ImageFaces:
         while True:
             try:
-                # slow down ui refresh,for more time run_onnx
-                sleep(0.001)
                 return self._result_queue.popleft()
             except IndexError:
                 qt_logger.debug("camera._result_queue is empty")
-                sleep(0.1) # like true camera to generate a frame
-                continue
+                sleep(0.005)
 
     @error_handler
     def run(self):
@@ -148,20 +119,12 @@ class Camera(CameraThreadBase):
             try:
                 self._is_sleeping.wait()
                 img = self._read()
-                sleep(0.02)
+                sleep(0.03)
                 self._result_queue.append(img)
             except CameraOpenError:
                 break
-
-    def sleep(self):
-        self._is_sleeping.clear()
-
-    def wake_up(self):
-        self._is_sleeping.set()
-
     def stop(self):
-        self._is_sleeping.set()
-        self._is_running.clear()
+        super().stop()
         self._camera.release()
         self.join()
         qt_logger.debug("camera stopped")
@@ -179,12 +142,6 @@ class Camera(CameraThreadBase):
             error_msg = f"in {self}.read()  self.videoCapture.read() get None"
             qt_logger.error(f"camera._read with CameraOpenError{error_msg}")
             raise CameraOpenError(error_msg)
-        # if self._camera_base.config.url == CameraUrl.video:
-        #     # sleep(1 / self.config.fps)
-        #     sleep(0.05)
-        # elif self._camera_base.config.url == CameraUrl.usb:
-        #     sleep(0.0001)
-        # logging.debug(f"camera read success{frame.shape}")
         return ImageFaces(image=frame, faces=[])
 
 

@@ -1,5 +1,7 @@
 import queue
 import uuid
+from collections import deque
+from threading import Thread, Event
 from typing import Any
 
 import numpy as np
@@ -37,7 +39,6 @@ class Face:
         self.id = face_id if face_id else str(uuid.uuid4())
         self.match_info = MatchedResult(uid=self.id)
 
-    @time_tracker.track_func
     def face_image(self, scene: Image) -> Face2Search:
         """
         get face image from scense
@@ -86,6 +87,40 @@ class ImageFaces:
         :return: (x1, y1, x2, y2)
         """
         return 0, 0, self.nd_arr.shape[1], self.nd_arr.shape[0]
+
+
+class ThreadBase(Thread):
+    """CameraBase thread"""
+
+    def __init__(self):
+        super().__init__()
+        self._jobs_queue = deque(maxlen=1000)
+        self._result_queue = deque(maxlen=1000)
+        self._is_running = Event()
+        self._is_sleeping = Event()
+        self._is_running.set()
+        self._is_sleeping.set()
+
+    def run(self):
+        """long time thread works"""
+        pass
+
+    def read(self, img: ImageFaces | None = None) -> ImageFaces:
+        """read from result_queue"""
+        pass
+
+    def wake_up(self):
+        """wake up thread"""
+        self._is_sleeping.set()
+
+    def sleep(self):
+        """sleep thread"""
+        self._is_sleeping.clear()
+
+    def stop(self):
+        """release camera and kill thread """
+        self._is_sleeping.set()
+        self._is_running.clear()
 
 
 class ClosableQueue(queue.Queue):

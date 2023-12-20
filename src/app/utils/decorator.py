@@ -1,6 +1,9 @@
 import datetime
+import time
 import traceback
+from contextlib import contextmanager
 from functools import wraps
+from timeit import default_timer
 
 import requests
 
@@ -23,3 +26,19 @@ def error_handler(f):
         return None
 
     return wrapper
+
+
+@contextmanager
+def calm_down(min_time: float):
+    """
+    上下文管理器，确保代码块执行的最小时间。
+    :param min_time: 稳定时间（秒）
+    """
+    start_time = default_timer()
+    try:
+        yield
+    finally:
+        end_time = default_timer()
+        elapsed_time = end_time - start_time
+        if elapsed_time < min_time:
+            time.sleep(min_time - elapsed_time)

@@ -38,16 +38,21 @@ class BoostFace:
         """
         # FIXME: run it for while will crash the app
         img = self._camera.read()
-        detected = self._detector.run_onnx(img)
+        detected = self._detector.read(img)
         identified = self._identifier.identify(detected)
         draw_on = self._draw.show(identified)
         return draw_on
+
     def wake_up(self):
         self._camera.wake_up()
+        self._detector.wake_up()
+
     def sleep(self):
         self._camera.sleep()
+        self._detector.sleep()
 
     @error_handler
     def stop_app(self):
         self._camera.stop()
+        self._detector.stop()
         self._identifier.stop_ws_client()
