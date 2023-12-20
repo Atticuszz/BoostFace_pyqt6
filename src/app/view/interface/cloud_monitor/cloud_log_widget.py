@@ -11,7 +11,7 @@ from src.app.view.component.console_log_widget import ConsoleLogWidget
 
 __all__ = ['create_cloud_log']
 
-
+# FIXME: get empty
 class CloudLogM(QThread):
     """
     Cloud log model

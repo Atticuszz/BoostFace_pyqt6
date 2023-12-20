@@ -122,7 +122,7 @@ class Camera(CameraThreadBase):
 
     def __init__(self):
         super().__init__()
-        self._result_queue = deque(maxlen=10)
+        self._result_queue = deque(maxlen=1000)
         self._camera_base = CameraBase()
         self._is_running = Event()
         self._is_sleeping = Event()
@@ -134,10 +134,12 @@ class Camera(CameraThreadBase):
     def read(self) -> ImageFaces | None:
         while True:
             try:
+                # slow down ui refresh,for more time run_onnx
+                sleep(0.001)
                 return self._result_queue.popleft()
             except IndexError:
                 qt_logger.debug("camera._result_queue is empty")
-                sleep(1)
+                sleep(0.1) # like true camera to generate a frame
                 continue
 
     @error_handler
@@ -146,6 +148,7 @@ class Camera(CameraThreadBase):
             try:
                 self._is_sleeping.wait()
                 img = self._read()
+                sleep(0.02)
                 self._result_queue.append(img)
             except CameraOpenError:
                 break

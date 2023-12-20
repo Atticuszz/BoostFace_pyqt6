@@ -2,6 +2,7 @@ import base64
 import uuid
 from dataclasses import dataclass
 
+import cv2
 import numpy as np
 from numpy._typing import NDArray
 from pydantic import BaseModel, Field
@@ -81,7 +82,11 @@ class Face2Search(WebsocketRSData):
 
     def to_base64(self) -> str:
         """将图像转换为 base64 编码的字符串"""
-        return base64.b64encode(self.face_img.tobytes()).decode('utf-8')
+        retval, buffer = cv2.imencode('.jpg', self.face_img)
+        if not retval:
+            raise ValueError("Failed to encode image")
+        image_base64 = base64.b64encode(buffer).decode('utf-8')
+        return image_base64
 
     def to_schema(self) -> Face2SearchSchema:
         """将 Face2Search 对象转换为 schema 对象"""

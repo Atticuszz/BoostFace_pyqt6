@@ -115,6 +115,7 @@ class Target:
         """
         if the scale of target is satisfied
         """
+        # TODO：test to fit
         scale_threshold = 0.03
         target_area = (self.face.bbox[2] - self.face.bbox[0]) * \
                       (self.face.bbox[3] - self.face.bbox[1])
@@ -262,7 +263,6 @@ class Identifier(Tracker):
     def _search(self, image2identify: ImageFaces):
         """ send data to search"""
         for tar in self._targets.values():
-            if tar.rec_satified:  # FIXME: seems like send data under wrong condition
-                with time_tracker.track("Identifier.search"):
-                    data_2_send = tar.face.face_image(image2identify.nd_arr)
-                    self.indentify_client.send(data_2_send)
+            if tar.rec_satified:  # FIXME: seems like send data under wrong condition，send too much
+                data_2_send = tar.face.face_image(image2identify.nd_arr)
+                self.indentify_client.send(data_2_send)

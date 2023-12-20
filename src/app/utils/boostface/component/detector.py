@@ -12,7 +12,7 @@ from src.app.utils.boostface.common import ImageFaces, Face
 from ..model_zoo.model_router import get_model
 from ...time_tracker import time_tracker
 
-
+# TODO: run into sub_thread or process
 class Detector:
     """
     scrfd det_2.5g.onnx with onnxruntime
@@ -20,7 +20,7 @@ class Detector:
 
     def __init__(self):
         root = Path(__file__).parents[1] / \
-               'model_zoo' / 'models' / 'det_2.5g.onnx'
+            'model_zoo' / 'models' / 'det_2.5g.onnx'
         self.detector_model = get_model(root, providers=(
             'CUDAExecutionProvider', 'CPUExecutionProvider'))
         prepare_params = {'ctx_id': 0,

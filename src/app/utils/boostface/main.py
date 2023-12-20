@@ -5,6 +5,8 @@
 @Date Created : 14/12/2023
 @Description  :
 """
+from time import sleep
+
 from src.app.common.types import Image
 from src.app.utils.boostface.component.camera import Camera
 from src.app.utils.boostface.component.detector import Detector
@@ -34,6 +36,7 @@ class BoostFace:
         :exception CameraOpenError
         :return: Image
         """
+        # FIXME: run it for while will crash the app
         img = self._camera.read()
         detected = self._detector.run_onnx(img)
         identified = self._identifier.identify(detected)
