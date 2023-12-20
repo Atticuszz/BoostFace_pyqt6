@@ -62,15 +62,15 @@ class Target:
         if the target is too old ,should be del
         """
         return self._frames_since_update > max_age
-    # FIXME: seems lead to to few faces bbox in img
+
     @property
-    def in_screen(self) -> bool:
+    def in_screen(self, min_hits=3) -> bool:
         """
         if the target is in screen should be satisfied min_hits,forbid the shiver
         """
-        min_hits = 1  # almost 0.1s if fps=30
-        # return self._hit_streak >= min_hits
-        return True
+        # almost 0.1s if fps=30
+        return self._hit_streak >= min_hits
+        # return True
 
     @property
     def get_predicted_tar(self) -> Face:
@@ -138,17 +138,16 @@ class Tracker:
     def __init__(
             self,
             max_age=10,
-            min_hits=1,
             iou_threshold=0.3
     ):
         super().__init__()
 
         self._targets: dict[str, Target] = {}
         self.max_age = max_age
-        self.min_hits = min_hits
         self.iou_threshold = iou_threshold
         self._recycled_ids = []
 
+    @time_tracker.track_func
     def _update(self, image2update: ImageFaces):
         """
         according to the "memory" in Kalman tracker update former targets info by Hungarian algorithm
@@ -225,12 +224,12 @@ class Identifier(Tracker):
         :return: get image2identify match info
         """
         self._update_from_result()
-        # FIXME: update failed add more than one face
         self._update(image2identify)
         self._search(image2identify)
         # [tar.face.match_info for tar in self._targets.values()]
-        qt_logger.debug(f"identifier identify {len(image2identify.faces)} faces")
-        qt_logger.debug(f"identifier identify {len(self._targets)} targets")
+        # qt_logger.debug(
+        # f"identifier identify {len(image2identify.faces)} faces")
+        # qt_logger.debug(f"identifier identify {len(self._targets)} targets")
         return ImageFaces(
             image2identify.nd_arr, [
                 tar.face for tar in self._targets.values() if tar.in_screen])
@@ -238,9 +237,9 @@ class Identifier(Tracker):
     def stop_ws_client(self):
         self.indentify_client.stop_ws()
 
+    @time_tracker.track_func
     def _update_from_result(self):
         """update from client results"""
-        # FIXME: only display one face ?
         while True:
             with time_tracker.track("Identifier.receive"):
                 result_dict = self.indentify_client.receive()
@@ -259,6 +258,7 @@ class Identifier(Tracker):
                 else:
                     break
 
+    @time_tracker.track_func
     def _search(self, image2identify: ImageFaces):
         """ send data to search"""
         for tar in self._targets.values():

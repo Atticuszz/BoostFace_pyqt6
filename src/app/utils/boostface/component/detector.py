@@ -10,6 +10,7 @@ from pathlib import Path
 from src.app.config import qt_logger
 from src.app.utils.boostface.common import ImageFaces, Face
 from ..model_zoo.model_router import get_model
+from ...time_tracker import time_tracker
 
 
 class Detector:
@@ -27,6 +28,7 @@ class Detector:
                           'input_size': (320, 320)}
         self.detector_model.prepare(**prepare_params)
 
+    @time_tracker.track_func
     def run_onnx(self, img2detect: ImageFaces) -> ImageFaces:
         """
         run onnx model

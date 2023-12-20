@@ -20,7 +20,7 @@ class Face:
             kps: Kps,
             det_score: float,
             scene_scale: tuple[int, int, int, int],
-            face_id: str = str(uuid.uuid4())
+            face_id: str | None = None
     ):
         """
         init a face
@@ -34,9 +34,10 @@ class Face:
         self.det_score: float = det_score
         self.scene_scale: tuple[int, int, int, int] = scene_scale
         self.embedding: Embedding = np.zeros(512)
-        self.id = face_id
+        self.id = face_id if face_id else str(uuid.uuid4())
         self.match_info = MatchedResult(uid=self.id)
 
+    @time_tracker.track_func
     def face_image(self, scene: Image) -> Face2Search:
         """
         get face image from scense

@@ -1,5 +1,3 @@
-from typing import Callable
-
 from time import sleep
 
 import cv2
@@ -20,6 +18,82 @@ from src.app.utils.time_tracker import time_tracker
 from src.app.view.component.link_card import LinkCardView
 
 __all__ = ['create_camera_widget', 'create_state_widget']
+
+
+class CameraModel(QThread):
+    """ Camera model """
+    change_pixmap_signal = pyqtSignal(QImage)
+
+    def __init__(self):
+        super().__init__()
+        self.ai_camera: BoostFace | None = None  # lazy load ,load as start thread
+        self._t_running = False
+        self._c_sleeping = False
+        self.img_size = (960, 540)
+        self.default_pixmap = QPixmap(self.img_size[0], self.img_size[1])
+        self.default_pixmap.fill(QColor(0, 0, 0, 0))
+
+    def start_capture(self):
+        """start capture thread"""
+
+        # thread init
+        if not self.isRunning():
+            self._t_running = True
+            self.start()
+        else:
+            self._wake_up()
+
+    def stop_capture(self):
+        """sleep capture"""
+        # time_tracker.close()
+        self._sleep()
+        time_tracker.close()
+
+    @error_handler
+    def stop(self):
+        self.stop_capture()
+        if self.ai_camera:
+            self.ai_camera.stop_app()
+        self._t_running = False
+        self.wait()
+        qt_logger.debug("CameraModel stopped")
+
+    @error_handler
+    def run(self):
+        self.ai_camera = BoostFace()
+
+        while self._t_running:
+
+            if self._c_sleeping:
+                self.change_pixmap_signal.emit(self.default_pixmap.toImage())
+                # qt_logger.debug("ai_camera is sleeping")
+                sleep(1)
+                continue
+
+            with time_tracker.track("CameraModel.run"):
+                try:
+                    # frame = self.capture.read()
+                    frame = self.ai_camera.get_result()
+                except CameraOpenError:
+                    print("camera open error or camera has released")
+                    break
+                rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                h, w, ch = rgb_image.shape
+                bytes_per_line = ch * w
+                convert_to_Qt_format = QImage(
+                    rgb_image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
+                self.change_pixmap_signal.emit(convert_to_Qt_format)
+
+    def _wake_up(self):
+        self.ai_camera.wake_up()
+        self._c_sleeping = False
+
+
+    def _sleep(self):
+        """sleeping thread"""
+        self._c_sleeping = True
+        self.ai_camera.sleep()
+
 
 
 class VideoStreamWidget(QWidget):
@@ -48,74 +122,6 @@ class VideoStreamWidget(QWidget):
         self.image_label.setPixmap(self.default_pixmap)
 
 
-class CameraModel(QThread):
-    """ Camera model """
-    change_pixmap_signal = pyqtSignal(QImage)
-
-    def __init__(self):
-        super().__init__()
-        self.ai_camera: BoostFace | None = None  # lazy load ,load as start thread
-        self._t_running = False
-        self._c_sleeping = False
-        self.img_size = (960, 540)
-        self.default_pixmap = QPixmap(self.img_size[0], self.img_size[1])
-        self.default_pixmap.fill(QColor(0, 0, 0, 0))
-
-    @error_handler
-    def run(self):
-        # self.capture = Camera()
-
-        while self._t_running:
-
-            if self._c_sleeping:
-                # set empty img as camera sleeping
-                self.change_pixmap_signal.emit(self.default_pixmap.toImage())
-                sleep(2)
-                qt_logger.debug("ai_camera is sleeping")
-                continue
-
-            with time_tracker.track("CameraModel.run"):
-                try:
-                    # frame = self.capture.read()
-                    frame = self.ai_camera.get_result()
-                except CameraOpenError:
-                    print("camera open error or camera has released")
-                    break
-                rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                h, w, ch = rgb_image.shape
-                bytes_per_line = ch * w
-                convert_to_Qt_format = QImage(
-                    rgb_image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
-                self.change_pixmap_signal.emit(convert_to_Qt_format)
-
-    def start_capture(self):
-        """start capture thread"""
-        if self.ai_camera is None:
-            # device init
-            self.ai_camera = BoostFace()
-        else:
-            # device wake up
-            self._c_sleeping = False
-        # thread init
-        if not self.isRunning():
-            self._t_running = True
-            self.start()
-
-    def stop_capture(self):
-        """sleep capture"""
-        # time_tracker.close()
-        self._c_sleeping = True
-
-    @error_handler
-    def stop(self):
-        self.stop_capture()
-        if self.ai_camera:
-            self.ai_camera.stop_app()
-        self._t_running = False
-        self.wait()
-        qt_logger.debug("CameraModel stopped")
-
-
 class CameraWidget(VideoStreamWidget):
     """
     camera_card
@@ -128,22 +134,11 @@ class CameraWidget(VideoStreamWidget):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.layout = QVBoxLayout(self)
-
         # need to connect in controller
         self.toggle_switch = TogglePushButton(
             FIF.PLAY_SOLID, "start camera", self)
-
         self.layout.addWidget(self.image_label)
-        # self.layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.layout.addWidget(self.toggle_switch)
-        # self.setLayout(self.layout)
-        self.close_event: Callable[[], None] | None = None
-
-    # def closeEvent(self, event) -> None:
-    #     if self.close_event:
-    #         self.close_event()
-    #
-    #     super().closeEvent(event)
 
 
 # TODO: change to true camera state

@@ -5,6 +5,9 @@
 @Date Created : 15/12/2023
 @Description  :
 """
+from functools import wraps
+from typing import Callable
+
 import time
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,6 +22,8 @@ from src.app.config import qt_logger
 # TODO: add decorator func
 # TODO: add fixed time test
 # TODO: add resource monitor as single multi tests
+
+
 class TimeTracker:
     _instance = None
 
@@ -35,23 +40,40 @@ class TimeTracker:
         self.records = {}
         self.base_path = Path(base_path)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
     def close(self):
         """Call this method to clean up and save the plots."""
         self.save_plots()
 
     @contextmanager
     def track(self, name):
-        # qt_logger.debug(f"tracking:{name}")
+        """Context manager to track the execution time of a block of code."""
         start = timer()
         try:
             yield
+        except Exception as e:
+            qt_logger.error(f"TimeTracker.track Error at  {name} with {e}")
+            raise e
         finally:
             end = timer()
             self.records.setdefault(name, []).append(end - start)
 
+    def track_func(self, func: Callable):
+        """self.track decorator for functions"""
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            with self.track(func.__name__):
+                return func(*args, **kwargs)
+        return wrapper
+
     def save_plots(self):
         output_directory = self.base_path / \
-                           f"timetracker_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            f"timetracker_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         output_directory.mkdir(parents=True, exist_ok=True)
 
         for name, durations in self.records.items():
@@ -82,7 +104,7 @@ class TimeTracker:
 
 
 # Example usage with specified path
-output_path = r'/performance'
+output_path = r'C:\Users\18317\python\BoostFace_pyqt6\tests\performance'
 time_tracker = TimeTracker(output_path)
 
 if __name__ == '__main__':
