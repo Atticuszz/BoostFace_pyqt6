@@ -8,6 +8,7 @@
 from time import sleep
 
 from src.app.common.types import Image
+from src.app.utils.boostface.common import ImageFaces
 from src.app.utils.boostface.component.camera import Camera
 from src.app.utils.boostface.component.detector import Detector
 from src.app.utils.boostface.component.drawer import Drawer
@@ -24,21 +25,21 @@ class BoostFace:
 
     def __init__(self):
         self._camera = Camera()
-        self._camera.wake_up()
         self._detector = Detector()
+        self._detector.connect_jobs_queue(self._camera.result_queue)
         self._identifier = Identifier()
         self._draw = Drawer()
 
     @error_handler
     @time_tracker.track_func
-    def get_result(self) -> Image:
+    def get_result(self) -> ImageFaces:
         """
         :exception CameraOpenError
         :return: Image
         """
         # FIXME: run it for while will crash the app
-        img = self._camera.read()
-        detected = self._detector.read(img)
+        img = self._camera.produce()
+        detected = self._detector.produce()
         identified = self._identifier.identify(detected)
         draw_on = self._draw.show(identified)
         return draw_on

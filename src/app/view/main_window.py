@@ -83,8 +83,9 @@ class MainWindow(FluentWindow):
         Initialize the window,splash screen and FluentWindow
         """
         # set full screen size
-        desktop = QApplication.screens()[0].availableGeometry()
-        w, h = desktop.width(), desktop.height()
+        # desktop = QApplication.screens()[0].availableGeometry()
+        # w, h = desktop.width(), desktop.height()
+        w, h = 960, 780
         self.resize(w, h)
         self.setMinimumWidth(760)
 
@@ -103,7 +104,6 @@ class MainWindow(FluentWindow):
         self.move(w // 2 - self.width() // 2, h // 2 - self.height() // 2)
         self.show()
         QApplication.processEvents()
-
     def login(self):
         self.login_dialog_c = create_login_dialog(self)
         self.login_dialog = self.login_dialog_c.view

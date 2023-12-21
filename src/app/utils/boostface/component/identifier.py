@@ -7,6 +7,7 @@ from src.app.utils.time_tracker import time_tracker
 from src.app.common.types import Bbox, Kps, MatchedResult, IdentifyResult
 from src.app.utils.boostface.common import Face, ImageFaces
 from .sort_plus import associate_detections_to_trackers, KalmanBoxTracker
+from ...decorator import calm_down
 
 
 class Target:
@@ -116,7 +117,7 @@ class Target:
         if the scale of target is satisfied
         """
         # TODO：test to fit
-        scale_threshold = 0.03
+        scale_threshold = 0.005
         target_area = (self.face.bbox[2] - self.face.bbox[0]) * \
                       (self.face.bbox[3] - self.face.bbox[1])
         screen_area = (self.face.scene_scale[3] - self.face.scene_scale[1]) * (
@@ -132,7 +133,6 @@ class Tracker:
     """
     tracker for a single target
     :param max_age: del as frames not matched
-    :param min_hits: be treated normal
     :param iou_threshold: for Hungarian algorithm
     """
 
@@ -193,6 +193,7 @@ class Tracker:
             # store key in self.self._targets.values()
             pos = raw_tar.bbox
             if np.any(np.isnan(pos)):
+                qt_logger.debug(f"tracker remove {tar.face.id} due to nan")
                 del self._targets[tar.face.id]
             else:
                 # got new predict tars
@@ -209,6 +210,7 @@ class Tracker:
             if tar.old_enough(self.max_age):
                 keys.append(tar.face.id)
         for k in keys:
+            qt_logger.debug(f"tracker remove {k} due to old enough")
             del self._targets[k]
 
 
@@ -218,6 +220,7 @@ class Identifier(Tracker):
         self.indentify_client = WebSocketClient("identify")
         self.indentify_client.start_ws()
 
+    @time_tracker.track_func
     def identify(self, image2identify: ImageFaces) -> ImageFaces:
         """
         fill image2identify.faces with match info or return MatchInfo directly
@@ -242,19 +245,17 @@ class Identifier(Tracker):
     def _update_from_result(self):
         """update from client results"""
         while True:
+            # FIXME: update slow
             with time_tracker.track("Identifier.receive"):
                 result_dict = self.indentify_client.receive()
                 if result_dict:
+                    # update match info
                     result = IdentifyResult.from_dict(result_dict)
+                    qt_logger.debug(f"Identifier receive {result}")
                     for tar in self._targets.values():
                         if tar.face.id == result.uid:
-                            # update match info
                             tar.face.match_info = MatchedResult.from_IdentifyResult(
                                 result)
-
-                            # send to result widget
-                            signalBus.identify_results.emit(
-                                [result.id, result.name, result.time])
                             break
                 else:
                     break

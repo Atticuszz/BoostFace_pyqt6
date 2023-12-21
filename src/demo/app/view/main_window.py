@@ -114,6 +114,7 @@ class MainWindow(FluentWindow):
         self.show()
         QApplication.processEvents()
 
+
     def onSupport(self):
         w = MessageBox(
             '支持作者🥰',

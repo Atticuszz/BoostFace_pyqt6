@@ -15,6 +15,7 @@ from src.app.common.types import WebsocketRSData
 from .client import client
 from ...config import qt_logger
 from ...utils.decorator import error_handler
+from ...utils.time_tracker import time_tracker
 
 
 class WebSocketDataProcessor:
@@ -145,10 +146,12 @@ class WebSocketClient(WebSocketBase):
     async def _receive_messages(self, websocket: WebSocketClientProtocol):
         qt_logger.debug(f"{self.base_url} : start receive messages")
         while self._is_running:
+
             try:
-                message = await asyncio.wait_for(websocket.recv(), timeout=1.0)
-                decoded = self._decode(message)
-                await self.receiver_queue.put(decoded)
+                with time_tracker.track(f"{self.base_url} : receive messages"):
+                    message = await asyncio.wait_for(websocket.recv(), timeout=1.0)
+                    decoded = self._decode(message)
+                    await self.receiver_queue.put(decoded)
             except asyncio.TimeoutError:
                 qt_logger.debug(f"{self.base_url} : receive timeout")
                 continue
@@ -160,12 +163,13 @@ class WebSocketClient(WebSocketBase):
         qt_logger.debug(f"{self.base_url} : start send messages")
         while self._is_running:
             try:
-                data = await self.sender_queue.get()
-                if data == "STOP":
-                    break
-                encoded = self._encode(data)
-                await websocket.send(encoded)
-                self.sender_queue.task_done()
+                with time_tracker.track(f"{self.base_url}send messages"):
+                    data = await self.sender_queue.get()
+                    if data == "STOP":
+                        break
+                    encoded = self._encode(data)
+                    await websocket.send(encoded)
+                    self.sender_queue.task_done()
             except websockets.exceptions.ConnectionClosedError:
                 qt_logger.info(f'{self.base_url} : Connection closed')
                 break

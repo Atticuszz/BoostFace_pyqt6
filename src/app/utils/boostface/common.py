@@ -1,6 +1,7 @@
 import queue
 import uuid
 from collections import deque
+from dataclasses import dataclass
 from threading import Thread, Event
 from typing import Any
 
@@ -11,6 +12,13 @@ from src.app.common import signalBus
 from src.app.config import qt_logger
 from src.app.utils.time_tracker import time_tracker
 from src.app.common.types import Image, Bbox, Kps, Embedding, MatchedResult, Face2Search
+
+
+@dataclass
+class SignUpInfo:
+
+    id: str
+    name: str
 
 
 class Face:
@@ -38,6 +46,7 @@ class Face:
         self.embedding: Embedding = np.zeros(512)
         self.id = face_id if face_id else str(uuid.uuid4())
         self.match_info = MatchedResult(uid=self.id)
+        self.sign_up_info = SignUpInfo(id=face_id,name='')
 
     def face_image(self, scene: Image) -> Face2Search:
         """
@@ -105,9 +114,18 @@ class ThreadBase(Thread):
         """long time thread works"""
         pass
 
-    def read(self, img: ImageFaces | None = None) -> ImageFaces:
+    def produce(self) -> ImageFaces:
         """read from result_queue"""
         pass
+
+    @property
+    def result_queue(self):
+        """result_queue"""
+        return self._result_queue
+
+    def connect_jobs_queue(self, result_queue: deque):
+        """connect jobs_queue"""
+        self._jobs_queue = result_queue
 
     def wake_up(self):
         """wake up thread"""

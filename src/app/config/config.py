@@ -52,7 +52,7 @@ class CameraUrl(Enum):
     laptop: int = 0
     usb: int = 1
     ip: str = "http://"
-    video: str = r"C:\Users\18317\python\BoostFace_pyqt6\tests\video\Nola_Lyirs.mp4"
+    video: str = r"C:\Users\18317\python\BoostFace_pyqt6\tests\video\friends.mp4"
 
 
 class CameraConfig(NamedTuple):

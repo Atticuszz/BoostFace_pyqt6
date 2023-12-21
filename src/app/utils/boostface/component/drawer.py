@@ -12,6 +12,7 @@ from numpy import ndarray
 from src.app.common.types import Color, Image, Bbox
 from src.app.config import qt_logger
 from src.app.utils.boostface.common import ImageFaces
+from src.app.utils.time_tracker import time_tracker
 
 
 class Drawer:
@@ -27,15 +28,16 @@ class Drawer:
         self._cur = 0
         self._colors: list[Color] = [(200, 150, 255), (255, 255, 153), (
             144, 238, 144), (173, 216, 230), (255, 182, 193), (255, 165, 0)]
-
-    def show(self, image2show: ImageFaces) -> Image:
+    @time_tracker.track_func
+    def show(self, image2show: ImageFaces) -> ImageFaces:
         self._frame_cnt += 1
         if self._frame_cnt > 10000:
             self._frame_cnt = 0
         image2show_nd_arr = self._draw_on(image2show)
         res = self._draw_fps(image2show_nd_arr)
+        image2show.nd_arr = res
         # cv2.imshow('screen', image2show_nd_arr)
-        return res
+        return image2show
 
     def _draw_bbox(self, dimg: Image, bbox: Bbox, bbox_color: Color):
         """
@@ -133,7 +135,7 @@ class Drawer:
             else:
                 bbox_color = random.choice(self._colors)
                 text_color = random.choice(self._colors)
-            name = face.match_info.uid
+            name = face.match_info.name
             # 黄色闪烁
             self._draw_bbox(dimg, bbox, bbox_color)
             # text show

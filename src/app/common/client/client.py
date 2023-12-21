@@ -7,7 +7,9 @@ import requests
 from cryptography.fernet import Fernet
 from time import time
 
+from src.app.common.types import Face2SearchSchema
 from src.app.utils.decorator import error_handler
+from src.app.config.logging_config import qt_logger
 
 
 class TokenEncryptor:
@@ -105,6 +107,19 @@ class AuthClient:
         self.base_ws_url = base_url.replace("http", "ws")
         self.token_manager = TokenManager()
         self.user: dict | None = None
+
+    def sign_up(self, face2register: Face2SearchSchema, id: str, name: str):
+        url = f'{self.base_url}/auth/face-register/{id}/{name}'
+        headers = {'Content-Type': 'application/json'}
+        data = face2register.model_dump()
+        # qt_logger.debug(f"send data:{data}")
+        response = requests.post(
+            url,
+            json=data,
+            headers=headers
+        )
+
+        return response
 
     @error_handler
     def login(self, email: str, password: str) -> dict | None:

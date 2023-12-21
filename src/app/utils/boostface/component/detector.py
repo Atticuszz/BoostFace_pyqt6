@@ -14,8 +14,6 @@ from ..model_zoo.model_router import get_model
 from ...decorator import error_handler
 from ...time_tracker import time_tracker
 
-# TODO: run into sub_thread or process
-
 
 class DetectorBase:
     """
@@ -66,14 +64,12 @@ class Detector(ThreadBase):
         super().start()
 
     @time_tracker.track_func
-    def read(self, img: ImageFaces | None = None) -> ImageFaces:
+    def produce(self) -> ImageFaces:
         while True:
             try:
-                if img:
-                    self._jobs_queue.append(img)
                 return self._result_queue.popleft()
             except IndexError:
-                qt_logger.debug("detector._result_queue is empty")
+                # qt_logger.debug("detector._result_queue is empty")
                 sleep(0.005)
 
     @error_handler
@@ -84,7 +80,8 @@ class Detector(ThreadBase):
             try:
                 img2detect = self._jobs_queue.popleft()
             except IndexError:
-                qt_logger.debug("detector._jobs_queue is empty")
+                # qt_logger.debug("detector._jobs_queue is empty")
+                sleep(0.005)
             else:
                 img2detect = self.detector.run_onnx(img2detect)
                 self._result_queue.append(img2detect)

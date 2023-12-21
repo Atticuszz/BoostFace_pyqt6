@@ -1,3 +1,5 @@
+from dataclasses import asdict
+
 from time import sleep
 
 import cv2
@@ -9,9 +11,11 @@ from qfluentwidgets import TogglePushButton
 from qfluentwidgets import isDarkTheme, FluentIcon
 
 from src.app.common import signalBus
+from src.app.common.types import Image
 from src.app.config import qt_logger
 from src.app.config.config import HELP_URL, REPO_URL, EXAMPLE_URL, FEEDBACK_URL
 from src.app.utils.boostface import BoostFace
+from src.app.utils.boostface.common import ImageFaces, Face
 from src.app.utils.boostface.component.camera import CameraOpenError
 from src.app.utils.decorator import error_handler, calm_down
 from src.app.utils.time_tracker import time_tracker
@@ -75,27 +79,27 @@ class CameraModel(QThread):
                 with calm_down(0.03):
                     try:
                         # frame = self.capture.read()
-                        frame = self.ai_camera.get_result()
+                        res: ImageFaces = self.ai_camera.get_result()
                     except CameraOpenError:
                         print("camera open error or camera has released")
                         break
-                    rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    rgb_image = cv2.cvtColor(res.nd_arr, cv2.COLOR_BGR2RGB)
                     h, w, ch = rgb_image.shape
                     bytes_per_line = ch * w
                     convert_to_Qt_format = QImage(
                         rgb_image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
                     self.change_pixmap_signal.emit(convert_to_Qt_format)
 
+
     def _wake_up(self):
         self.ai_camera.wake_up()
         self._c_sleeping = False
 
-
     def _sleep(self):
         """sleeping thread"""
         self._c_sleeping = True
-        self.ai_camera.sleep()
-
+        if self.ai_camera:
+            self.ai_camera.sleep()
 
 
 class VideoStreamWidget(QWidget):
@@ -156,7 +160,7 @@ class StateWidget(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        self.setFixedHeight(200)
+        self.setFixedHeight(160)
 
         self.vBoxLayout = QVBoxLayout(self)
 
