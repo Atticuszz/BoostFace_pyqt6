@@ -3,6 +3,5 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../BoostFace_fastapi" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../supabase-py-async" vcs="Git" />
   </component>
 </project>

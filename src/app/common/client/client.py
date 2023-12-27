@@ -174,7 +174,7 @@ class AuthClient:
         return headers
 
 
-client = AuthClient("http://127.0.0.1:5000")
+client = AuthClient("http://192.168.137.1:5000")
 client.login(email="zhouge1831@gmail.com", password="Zz030327#")
 if __name__ == "__main__":
     # 使用示例

@@ -91,7 +91,7 @@ class MainWindow(FluentWindow):
 
         # set window icon and title
         self.setWindowIcon(QIcon(':/gallery/images/logo.png'))
-        self.setWindowTitle('PyQt-Fluent-Widgets')
+        self.setWindowTitle('基于云计算+深度学习的高负荷多终端人脸识别微服务架构系统 桌面端')
 
         self.setMicaEffectEnabled(cfg.get(cfg.micaEnabled))
 

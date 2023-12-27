@@ -85,12 +85,14 @@ class WebSocketClient(WebSocketBase):
         self.base_url = f"{client.base_ws_url}/identify/{self.ws_type}/ws/"
         self.auth_header = client._auth_header()
 
+    @error_handler
     def start_ws(self):
         """ start websocket"""
         self._is_running = True
         super().start_ws()
         qt_logger.info(f"{self.base_url} : websocket started")
 
+    @error_handler
     def stop_ws(self):
         """stop websocket"""
         if not self.is_alive():  # 检查线程是否已经开始
@@ -101,6 +103,7 @@ class WebSocketClient(WebSocketBase):
         self.join()
         qt_logger.info(f"{self.base_url} : websocket stopped")
 
+    @error_handler
     def send(self, data: dict | WebsocketRSData | str | bytes):
         """send data to websocket"""
         try:
@@ -108,6 +111,7 @@ class WebSocketClient(WebSocketBase):
         except asyncio.QueueFull:
             qt_logger.warning(f"{self.base_url} : sender queue is full")
 
+    @error_handler
     def receive(
             self) -> dict | str | Mat | ndarray[Any, dtype] | ndarray | None:
         """receive data from websocket"""
@@ -124,6 +128,7 @@ class WebSocketClient(WebSocketBase):
         asyncio.set_event_loop(loop)
         loop.run_until_complete(self._connect_websocket())
 
+    @error_handler
     async def _connect_websocket(self):
         """connect websocket"""
         time_now = datetime.datetime.now()
@@ -143,6 +148,7 @@ class WebSocketClient(WebSocketBase):
             for task in pending:
                 task.cancel()
 
+    @error_handler
     async def _receive_messages(self, websocket: WebSocketClientProtocol):
         qt_logger.debug(f"{self.base_url} : start receive messages")
         while self._is_running:
@@ -158,7 +164,10 @@ class WebSocketClient(WebSocketBase):
             except websockets.exceptions.ConnectionClosedError:
                 qt_logger.info(f'{self.base_url} : Connection closed')
                 break
+            except Exception as e:
+                qt_logger.error(f"WebSocket error occurred: {e.__class__.__name__} - {e}")
 
+    @error_handler
     async def _send_messages(self, websocket: WebSocketClientProtocol):
         qt_logger.debug(f"{self.base_url} : start send messages")
         while self._is_running:
@@ -173,7 +182,10 @@ class WebSocketClient(WebSocketBase):
             except websockets.exceptions.ConnectionClosedError:
                 qt_logger.info(f'{self.base_url} : Connection closed')
                 break
+            except Exception as e:
+                qt_logger.error(f"WebSocket error occurred: {e.__class__.__name__} - {e}")
 
+    @error_handler
     def _decode(self, data: str |
                 bytes) -> dict | str | Mat | ndarray[Any, dtype] | ndarray:
         if isinstance(data, bytes):
@@ -198,9 +210,12 @@ class WebSocketClient(WebSocketBase):
         else:
             raise TypeError(f"can not decode data:{data}")
 
+    @error_handler
     def _encode(self, data: dict | WebsocketRSData |
                 str | bytes) -> str | bytes:
         if isinstance(data, WebsocketRSData):
+            if data is None:
+                qt_logger.error(f"can not encode data:{data}")
             return data.to_schema().model_dump_json()
         elif isinstance(data, dict):
             return json.dumps(data)

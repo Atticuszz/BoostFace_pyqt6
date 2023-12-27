@@ -73,7 +73,6 @@ class Face:
 
         return Face2Search(
             face_img,
-            bbox,
             kps,
             self.det_score,
             self.match_info.uid)

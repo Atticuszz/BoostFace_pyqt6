@@ -11,9 +11,7 @@ from pathlib import Path
 import cv2
 
 from src.app.common.client import client
-from src.app.common.types import Face2SearchSchema, Face2Search
 from src.app.utils.boostface.common import ImageFaces
-from src.app.utils.boostface.component.camera import CameraBase
 from src.app.utils.boostface.component.detector import DetectorBase
 
 IMAGE_PATH = r'C:\Users\18317\python\BoostFace_fastapi\src\boostface\db\data\test_01\known'

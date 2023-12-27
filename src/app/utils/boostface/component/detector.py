@@ -70,7 +70,7 @@ class Detector(ThreadBase):
                 return self._result_queue.popleft()
             except IndexError:
                 # qt_logger.debug("detector._result_queue is empty")
-                sleep(0.005)
+                sleep(0.02)
 
     @error_handler
     def run(self):
@@ -81,7 +81,7 @@ class Detector(ThreadBase):
                 img2detect = self._jobs_queue.popleft()
             except IndexError:
                 # qt_logger.debug("detector._jobs_queue is empty")
-                sleep(0.005)
+                sleep(0.02)
             else:
                 img2detect = self.detector.run_onnx(img2detect)
                 self._result_queue.append(img2detect)
