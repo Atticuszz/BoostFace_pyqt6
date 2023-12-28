@@ -7,7 +7,7 @@
 - the front-end is based on pyqt6 and the back-end is based on fastapi
 - the database is based on supabase and milvus in fastapi cloud compute
 
-## Project Architecture
+## Architecture
 - layout
     - home UI✅
         - total state
@@ -25,27 +25,8 @@
         - cloud info
         - cloud system monitor
 
-## Project Process🌈
-1. basic layout by pyqt6 ✅
-    1. main_window
-    2. home_ui
-    3. setting_ui
-    4. local_dev_info_ui
-    5. cloud_dev_info_ui
-2. how to config?
-3. fastapi client?
-    1. login?
-        1. ui✅
-        2. Model✅
-        3. Controller✅
-    2. socket
-        1. access record table
-            1. ui -home - access record table ✅
-            2. model - access record table ✅ socket in here
-            3. controller - access record table ✅
-        2. face image -> next step🥵
-        3. connect to cloud dev log ✅
-        4. system monitor ✅
-4. local dev info
-    1. model -> global info logging ✅
-4. boostface integration local and connect to cloud? -> next step🥵
+## Road map🚀
+1. for demo ✅ 
+2. for paper 🥵
+   -
+3. for real world 🥵
